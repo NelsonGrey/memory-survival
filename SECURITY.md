@@ -2,13 +2,13 @@
 
 ## Supported Versions
 
-**Memory-Allocation Survival** is currently in discovery / pre-release status — see [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md). There is a single active line of development (`main`); no long-term-support branches exist yet.
+**Memory-Allocation Survival** is currently in discovery / pre-release status — see [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md). Development flows `develop` → `staging` → `main`; only the code on these three branches is supported, there is no long-term support for older commits.
 
-| Environment | GCP project        | Status                        |
-| ----------- | ------------------- | ------------------------------ |
-| Development | `memory-alloc-survival-dev`     | Active                          |
-| Staging     | `memory-alloc-survival-staging` | Active                          |
-| Production  | `memory-alloc-survival-prod`    | Provisioned, not yet released   |
+| Branch    | Environment | GCP project          | Status                        |
+| --------- | ----------- | --------------------- | ------------------------------ |
+| `develop` | Development | `memory-alloc-survival-dev`     | Active, default branch          |
+| `staging` | Staging     | `memory-alloc-survival-staging` | Active                           |
+| `main`    | Production  | `memory-alloc-survival-prod`    | Provisioned, not yet released    |
 
 ## Reporting a Vulnerability
 
