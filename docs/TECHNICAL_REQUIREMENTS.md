@@ -26,11 +26,14 @@ This document specifies the deterministic simulation and mobile-client capabilit
 - Accessible presentation, audio, and haptics.
 - Optional privacy-minimized analytics and crash reporting.
 - Ad SDK integration (AdMob): persistent top banner on every non-gameplay screen (including pause), plus one interstitial per completed/exited scenario on the way back to a non-gameplay screen, gated behind a consent (GDPR/UMP, App Tracking Transparency) flow. Never shown during active placement, never gating the start of a scenario, never on ordinary menu navigation.
+- Firebase Authentication (Google/Apple sign-in) gating access to gameplay, matching the portfolio's account-required access model.
+- Cloud Firestore sync for progress, statistics, and leaderboard scores, with local caching for offline play between sync points.
+- Global leaderboard for endless survival score, backed by Firestore with server-side-enforced security rules.
 - Store purchase integration for the single ad-removal entitlement.
 
 ### Excluded from MVP
 
-- Required backend, cloud saves, accounts, leaderboards, multiplayer, user-generated content, virtual memory, paging, real garbage collectors, or executable code.
+- Multiplayer, user-generated content, virtual memory, paging, real garbage collectors, or executable code.
 
 ## 3. Core simulation
 
@@ -98,7 +101,7 @@ CI validation must reject overlaps, invalid ranges, orphaned process ownership, 
 
 ## 6. Architecture requirements
 
-The client shall isolate the domain simulation from rendering, content, persistence, analytics, advertising, purchases, and platform lifecycle. The simulation shall be runnable without a UI and shall expose state snapshots suitable for tests and failure explanations.
+The client shall isolate the domain simulation from rendering, content, persistence, analytics, advertising, authentication, cloud sync, purchases, and platform lifecycle. The simulation shall be runnable without a UI and shall expose state snapshots suitable for tests and failure explanations.
 
 Random request generation shall use a versioned pseudo-random algorithm and stored seed. A ruleset version shall be stored with every best score so balance changes do not silently compare incompatible runs.
 
@@ -121,6 +124,8 @@ Random request generation shall use a versioned pseudo-random algorithm and stor
 | MAS-TR-013 | Every third-party dependency and asset shall have retained provenance and license metadata.                                           | MAS-BR-009             |
 | MAS-TR-014 | Purchase failure, cancellation, restore, pending status, and offline entitlement shall not corrupt progression.                       | MAS-BR-007             |
 | MAS-TR-015 | The ad layer shall be hidden behind an interface with a deterministic fake for tests, shall load consent state before any ad request, shall suppress all ad units when the ad-removal entitlement is active, and shall enforce a minimum interval between interstitials so accidental extra calls cannot spam ads. | MAS-BR-007, MAS-BR-015 |
+| MAS-TR-016 | Gameplay shall be gated behind Google/Apple sign-in via Firebase Auth; unauthenticated users shall see only the sign-in flow. | MAS-BR-006 |
+| MAS-TR-017 | Progress and leaderboard scores shall sync to Cloud Firestore under user-scoped security rules, with rate-limited score submission and offline-cached local fallback. | MAS-BR-016 |
 
 ## 8. Scoring and balance
 
@@ -131,6 +136,8 @@ Balance simulations shall evaluate representative placement policies and random 
 ## 9. Persistence and interruption
 
 The game shall persist progression, settings, statistics, entitlement state, best scores with ruleset versions, and an interrupted-run snapshot if resumption is supported. Backgrounding must pause or advance simulation according to an explicit mode policy; it may not silently consume process lifetimes while the player cannot interact.
+
+Progress, statistics, and leaderboard scores sync to Cloud Firestore under a `users/{userId}/` document (`profile`, `gameState`, `achievements`) plus a `leaderboards/global/scores/{scoreId}` collection (`userId`, `playerName`, `score`, `timestamp`), matching Modulo Squares' schema. Firestore security rules shall enforce user-scoped read/write access and rate-limit score submissions. Local caching keeps the game playable offline between sync points; sync conflicts resolve by keeping the higher score / latest progress rather than silently overwriting.
 
 ## 10. Telemetry
 
@@ -144,6 +151,8 @@ The minimum event catalog should include:
 - Endless-run score and duration bands.
 - Purchase outcome if applicable.
 - Ad impression and click events (aggregate SDK-reported events only, no custom cross-app tracking).
+- Sign-in method and outcome (Google/Apple).
+- Leaderboard view and submission events.
 - Accessibility setting enabled.
 
 Telemetry shall use aggregate numeric or enum fields rather than process names or user-entered text.
@@ -158,6 +167,7 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Golden tests at supported sizes, orientations, themes, and text scales.
 - Integration tests for interruption, restore, migration, offline play, and purchase states.
 - Ad-layer tests: consent flow, ad load failure/fallback, and entitlement-based ad suppression using the deterministic fake.
+- Integration tests for sign-in flow, Firestore sync (including conflict resolution), and leaderboard submission/rate-limiting.
 - Accessibility and device-performance testing across the approved matrix.
 
 ## 12. Release gates
@@ -170,3 +180,4 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Crash-free staged rollout meets the business target.
 - Dependency, asset-license, privacy, analytics, and store-purchase audits complete.
 - Ad content and placement reviewed against Google Play and Apple App Store ad policies, with consent flow verified for GDPR/UMP and App Tracking Transparency.
+- Firestore security rules reviewed and tested (user-scoped access, score-submission rate limiting).

@@ -64,7 +64,7 @@ No player may be required to know terms such as heap, allocation, or fragmentati
 - Accurately modeling a modern operating system or hardware memory manager.
 - Teaching C/C++ allocation APIs or requiring code entry.
 - Two-dimensional polyomino placement as the principal mechanic.
-- Competitive multiplayer, player trading, live economies, required accounts, or server-authoritative play.
+- Competitive multiplayer, player trading, live economies, or server-authoritative play.
 - Simulating virtual memory, paging, multiple heaps, caches, and garbage collectors in the first release.
 
 ## 6. MVP product scope
@@ -80,9 +80,10 @@ The MVP must include:
 - At least 36 authored scenarios across four mechanic chapters.
 - One endless survival mode using deterministic seeded generation.
 - Local progress, statistics, settings, and best scores.
-- Offline play without an account.
+- Account sign-in (Google or Apple) required before the first scenario; a complete experience thereafter that stays playable offline between sync points, with progress and leaderboard scores syncing to the cloud when connected.
+- A global leaderboard for endless survival score, backed by cloud sync.
 
-Virtual memory, multiple allocation algorithms, garbage-collection tracing, daily challenges, and leaderboards are post-MVP candidates.
+Virtual memory, multiple allocation algorithms, garbage-collection tracing, and daily challenges are post-MVP candidates.
 
 ## 7. Business requirements
 
@@ -93,7 +94,7 @@ Virtual memory, multiple allocation algorithms, garbage-collection tracing, dail
 | MAS-BR-003 | The game shall distinguish allocation failure caused by total capacity from failure caused by fragmentation.                   | Must     | Failure-state acceptance tests and comprehension results        |
 | MAS-BR-004 | Compaction shall impose a meaningful, visible cost and shall not erase all strategic consequences.                             | Must     | Balance rules and player-choice telemetry                       |
 | MAS-BR-005 | The MVP shall provide at least 36 authored scenarios and one endless survival mode.                                            | Must     | Content inventory and release build                             |
-| MAS-BR-006 | The complete challenge path shall be playable without an account, a purchase, or an always-on connection.                       | Must     | Offline end-to-end test                                         |
+| MAS-BR-006 | Players shall sign in with Google or Apple before the first scenario; the signed-in session shall then support offline play with progress syncing when connectivity returns.                       | Must     | Sign-in and offline-sync end-to-end test                        |
 | MAS-BR-007 | The commercial model shall be free-to-play with banner and interstitial advertising, plus a one-time purchase that removes all ads. | Must | Approved pricing configuration                                  |
 | MAS-BR-008 | Technical overlays such as addresses, utilization, and fragmentation percentage shall be optional or progressively introduced. | Should   | UX and accessibility review                                     |
 | MAS-BR-009 | The product shall use an original visual metaphor, UI, audio identity, content set, and store presentation.                    | Must     | Originality review and asset register                           |
@@ -103,6 +104,7 @@ Virtual memory, multiple allocation algorithms, garbage-collection tracing, dail
 | MAS-BR-013 | Information shall not rely only on color, audio, fine motor precision, or rapid reading.                                       | Must     | Accessibility test report                                       |
 | MAS-BR-014 | Store materials shall avoid claims of complete or professionally transferable memory-management training.                      | Must     | Store-listing review                                            |
 | MAS-BR-015 | Free players shall see a persistent banner ad on every non-gameplay screen, including the pause overlay, and one interstitial ad when a scenario ends and the player returns to a non-gameplay screen. Ads shall never appear during active placement, shall never gate the start of a scenario, and shall never fire on ordinary menu navigation. | Must | Ad-placement review and playtest evidence |
+| MAS-BR-016 | Logged-in players shall be able to view a global leaderboard and submit scores from endless survival score; paid (ad-removal) players retain full access. | Must | Leaderboard integration test |
 
 ## 8. Progression and content strategy
 
@@ -120,6 +122,7 @@ Authored scenarios should constrain the queue or objective to teach a single ins
 The game follows the portfolio's standard financial model, matching Modulo Squares: free-to-play with advertising, plus a one-time purchase that removes all ads.
 
 - **Free tier:** the complete game, supported by a persistent banner ad (top of screen) on every non-gameplay screen — menu, scenario select, settings, results, and the pause overlay — plus one interstitial ad when a scenario ends and the player returns to a non-gameplay screen. Ads never appear during active placement, never gate the start of a scenario, and never fire on ordinary menu navigation.
+- **Access tiers** (matching Modulo Squares): guest/unauthenticated players get no gameplay entry — sign-in is required before the first scenario. Logged-in free players get full gameplay plus leaderboard participation. Paid logged-in players get full gameplay with ads disabled. This is the default; a future guest mode would need its own local-progress and conversion rules defined before it could ship.
 - **Ad removal:** a single one-time in-app purchase disables all ads permanently. This is the only purchase in the MVP.
 - **Never monetized:** compaction actions, undos, favorable process queues, or scoring advantages. No consumable currencies or energy timers.
 - Optional visual themes may be evaluated after launch but are never required to enjoy the free ad-supported experience.
