@@ -57,7 +57,7 @@ No player may be required to know terms such as heap, allocation, or fragmentati
 - Support both authored scenarios and repeatable procedural runs.
 - Create a visually marketable concept with clear before/after states.
 - Encourage planning without requiring lengthy sessions.
-- Support a premium or permanent-unlock commercial model.
+- Support the portfolio's standard financial model (matching Modulo Squares): free-to-play with banner and interstitial advertising, plus a one-time purchase that removes all ads.
 
 ### Non-goals for MVP
 
@@ -93,8 +93,8 @@ Virtual memory, multiple allocation algorithms, garbage-collection tracing, dail
 | MAS-BR-003 | The game shall distinguish allocation failure caused by total capacity from failure caused by fragmentation.                   | Must     | Failure-state acceptance tests and comprehension results        |
 | MAS-BR-004 | Compaction shall impose a meaningful, visible cost and shall not erase all strategic consequences.                             | Must     | Balance rules and player-choice telemetry                       |
 | MAS-BR-005 | The MVP shall provide at least 36 authored scenarios and one endless survival mode.                                            | Must     | Content inventory and release build                             |
-| MAS-BR-006 | The complete challenge path shall be playable without an account, forced advertisements, or an always-on connection.           | Must     | Offline end-to-end test                                         |
-| MAS-BR-007 | The commercial model shall be upfront premium or a meaningful sample followed by one permanent unlock.                         | Must     | Approved pricing configuration                                  |
+| MAS-BR-006 | The complete challenge path shall be playable without an account, a purchase, or an always-on connection.                       | Must     | Offline end-to-end test                                         |
+| MAS-BR-007 | The commercial model shall be free-to-play with banner and interstitial advertising, plus a one-time purchase that removes all ads. | Must | Approved pricing configuration                                  |
 | MAS-BR-008 | Technical overlays such as addresses, utilization, and fragmentation percentage shall be optional or progressively introduced. | Should   | UX and accessibility review                                     |
 | MAS-BR-009 | The product shall use an original visual metaphor, UI, audio identity, content set, and store presentation.                    | Must     | Originality review and asset register                           |
 | MAS-BR-010 | The final title and icon shall pass comprehensive clearance before announcement.                                               | Must     | Signed clearance checklist                                      |
@@ -102,6 +102,7 @@ Virtual memory, multiple allocation algorithms, garbage-collection tracing, dail
 | MAS-BR-012 | The game shall explain every failure from visible state and recent decisions.                                                  | Must     | Usability and state-reconstruction tests                        |
 | MAS-BR-013 | Information shall not rely only on color, audio, fine motor precision, or rapid reading.                                       | Must     | Accessibility test report                                       |
 | MAS-BR-014 | Store materials shall avoid claims of complete or professionally transferable memory-management training.                      | Must     | Store-listing review                                            |
+| MAS-BR-015 | Free players shall see a persistent banner ad and interstitial ads between scenarios, never during active placement.           | Must     | Ad-placement review and playtest evidence                       |
 
 ## 8. Progression and content strategy
 
@@ -116,9 +117,14 @@ Authored scenarios should constrain the queue or objective to teach a single ins
 
 ## 9. Monetization hypothesis
 
-The preferred model is a free onboarding chapter followed by a single permanent unlock. This supports comprehension testing before purchase and avoids introducing consumables that would undermine a deterministic strategy game.
+The game follows the portfolio's standard financial model, matching Modulo Squares: free-to-play with advertising, plus a one-time purchase that removes all ads.
 
-Optional visual themes may be evaluated after launch. Compaction actions, undos, favorable process queues, and scoring advantages may not be sold as consumables.
+- **Free tier:** the complete game, supported by a persistent banner ad (top of screen) and interstitial ads shown between scenarios. Ads are never shown during active placement.
+- **Ad removal:** a single one-time in-app purchase disables all ads permanently. This is the only purchase in the MVP.
+- **Never monetized:** compaction actions, undos, favorable process queues, or scoring advantages. No consumable currencies or energy timers.
+- Optional visual themes may be evaluated after launch but are never required to enjoy the free ad-supported experience.
+
+Ad presentation must comply with Google Play and Apple App Store policies and applicable consent requirements (GDPR/UMP, App Tracking Transparency) before any regional rollout.
 
 ## 10. Success measures
 

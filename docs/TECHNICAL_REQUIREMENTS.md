@@ -25,7 +25,8 @@ This document specifies the deterministic simulation and mobile-client capabilit
 - Local progression, settings, statistics, and save migrations.
 - Accessible presentation, audio, and haptics.
 - Optional privacy-minimized analytics and crash reporting.
-- Store purchase support only if the free-sample model is selected.
+- Ad SDK integration (AdMob): persistent top banner plus interstitials between scenarios, gated behind a consent (GDPR/UMP, App Tracking Transparency) flow, never shown during active placement.
+- Store purchase integration for the single ad-removal entitlement.
 
 ### Excluded from MVP
 
@@ -97,7 +98,7 @@ CI validation must reject overlaps, invalid ranges, orphaned process ownership, 
 
 ## 6. Architecture requirements
 
-The client shall isolate the domain simulation from rendering, content, persistence, analytics, purchases, and platform lifecycle. The simulation shall be runnable without a UI and shall expose state snapshots suitable for tests and failure explanations.
+The client shall isolate the domain simulation from rendering, content, persistence, analytics, advertising, purchases, and platform lifecycle. The simulation shall be runnable without a UI and shall expose state snapshots suitable for tests and failure explanations.
 
 Random request generation shall use a versioned pseudo-random algorithm and stored seed. A ruleset version shall be stored with every best score so balance changes do not silently compare incompatible runs.
 
@@ -111,7 +112,7 @@ Random request generation shall use a versioned pseudo-random algorithm and stor
 | MAS-TR-004 | Compaction shall be simulated as a documented deterministic transition with configurable cost.                                        | MAS-BR-004             |
 | MAS-TR-005 | Authored scenarios shall be schema validated and solvability checked before packaging.                                                | MAS-BR-005             |
 | MAS-TR-006 | Endless runs shall be reproducible from seed and ruleset version.                                                                     | MAS-BR-005             |
-| MAS-TR-007 | Core play and purchased content shall function offline after entitlement caching.                                                     | MAS-BR-006, MAS-BR-007 |
+| MAS-TR-007 | Core play shall function offline after entitlement caching, including the ad-removal entitlement.                                     | MAS-BR-006, MAS-BR-007 |
 | MAS-TR-008 | Save writes shall be atomic and data migrations versioned and tested.                                                                 | MAS-BR-005             |
 | MAS-TR-009 | All drag actions shall have tap-only equivalents, and status shall not rely exclusively on color, sound, motion, or fine text.        | MAS-BR-013             |
 | MAS-TR-010 | The renderer shall sustain 60 frames per second on baseline devices while simulation is frame-rate independent.                       | MAS-BR-001             |
@@ -119,6 +120,7 @@ Random request generation shall use a versioned pseudo-random algorithm and stor
 | MAS-TR-012 | Analytics shall avoid personally identifying data and shall never include a raw device interaction recording by default.              | MAS-BR-011             |
 | MAS-TR-013 | Every third-party dependency and asset shall have retained provenance and license metadata.                                           | MAS-BR-009             |
 | MAS-TR-014 | Purchase failure, cancellation, restore, pending status, and offline entitlement shall not corrupt progression.                       | MAS-BR-007             |
+| MAS-TR-015 | The ad layer shall be hidden behind an interface with a deterministic fake for tests, shall load consent state before any ad request, and shall suppress all ad units when the ad-removal entitlement is active. | MAS-BR-007, MAS-BR-015 |
 
 ## 8. Scoring and balance
 
@@ -141,6 +143,7 @@ The minimum event catalog should include:
 - Tutorial step outcome.
 - Endless-run score and duration bands.
 - Purchase outcome if applicable.
+- Ad impression and click events (aggregate SDK-reported events only, no custom cross-app tracking).
 - Accessibility setting enabled.
 
 Telemetry shall use aggregate numeric or enum fields rather than process names or user-entered text.
@@ -154,6 +157,7 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Generator simulations across large seed samples to detect impossible early sequences and dominant policies.
 - Golden tests at supported sizes, orientations, themes, and text scales.
 - Integration tests for interruption, restore, migration, offline play, and purchase states.
+- Ad-layer tests: consent flow, ad load failure/fallback, and entitlement-based ad suppression using the deterministic fake.
 - Accessibility and device-performance testing across the approved matrix.
 
 ## 12. Release gates
@@ -165,3 +169,4 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Performance and cold-launch targets met on baseline devices.
 - Crash-free staged rollout meets the business target.
 - Dependency, asset-license, privacy, analytics, and store-purchase audits complete.
+- Ad content and placement reviewed against Google Play and Apple App Store ad policies, with consent flow verified for GDPR/UMP and App Tracking Transparency.
