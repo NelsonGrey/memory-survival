@@ -8,7 +8,7 @@ Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
 
 ## Layout
 
-- `packages/mobile` — Flutter client (iOS + Android)
+- `packages/mobile` — Flutter client (iOS + Android). Depends on [game-shell](https://github.com/NelsonGrey/game-shell) for auth, ads, consent, and the ad-removal entitlement — see that repo before reimplementing any of those.
 - `packages/functions` — Firebase Cloud Functions (Node 22 / TypeScript)
 - `packages/firestore-rules` — Firestore security rules
 - `packages/web` — landing page (Firebase Hosting)
