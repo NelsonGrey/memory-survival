@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+packages/mobile/build/
+packages/mobile/.dart_tool/
+packages/mobile/.flutter-plugins*
+packages/functions/lib/
+packages/functions/node_modules/
+firebase-config/*.json
+firebase-config/*.plist
+.firebase/
+*.log
+.env
+.env.*
+!.env.*.example
