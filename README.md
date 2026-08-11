@@ -39,3 +39,7 @@ cp ../../firebase-config/GoogleService-Info.dev.plist ios/Runner/GoogleService-I
 flutter pub get
 flutter run
 ```
+
+## License
+
+See [LICENSE](LICENSE). Security issues: see [SECURITY.md](SECURITY.md).
