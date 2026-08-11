@@ -24,6 +24,22 @@ Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
 
 Bundle/package ID base: `com.memoryallocationsurvival`
 
+## Deliverables
+
+Each game in this portfolio ships three deliverables:
+
+| Deliverable | Platform | Identifier | Status |
+| --- | --- | --- | --- |
+| Android app | Google Play | `com.memoryallocationsurvival.app.android` | Firebase-registered; Play Console listing not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
+| iOS app | Apple App Store Connect | `com.memoryallocationsurvival.app.ios` | Firebase-registered; ASC app record not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
+| Website | Firebase Hosting | `memory-alloc-survival-{env}.web.app` | **Dev live**; staging/prod configured, not yet deployed |
+
+Website URLs (redeploy with `firebase deploy --only hosting --project <env>`, or run the equivalent Hosting REST API calls if `firebase login` has not been done on this machine):
+
+- Dev: https://memory-alloc-survival-dev.web.app &mdash; **live**
+- Staging: https://memory-alloc-survival-staging.web.app &mdash; not yet deployed
+- Prod: https://memory-alloc-survival-prod.web.app &mdash; not yet deployed
+
 ## Store setup still required manually
 
 Google Play Console and Apple App Store Connect have no public API for

@@ -7,7 +7,12 @@
     "rules": "packages/firestore-rules/firestore.rules"
   },
   "hosting": {
+    "target": "website",
     "public": "packages/web",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
   }
 }

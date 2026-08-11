@@ -4,5 +4,28 @@
     "dev": "memory-alloc-survival-dev",
     "staging": "memory-alloc-survival-staging",
     "prod": "memory-alloc-survival-prod"
+  },
+  "targets": {
+    "memory-alloc-survival-dev": {
+      "hosting": {
+        "website": [
+          "memory-alloc-survival-dev"
+        ]
+      }
+    },
+    "memory-alloc-survival-staging": {
+      "hosting": {
+        "website": [
+          "memory-alloc-survival-staging"
+        ]
+      }
+    },
+    "memory-alloc-survival-prod": {
+      "hosting": {
+        "website": [
+          "memory-alloc-survival-prod"
+        ]
+      }
+    }
   }
 }
