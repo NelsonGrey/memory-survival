@@ -3,8 +3,8 @@
 Flutter + Firebase monorepo, following the same architecture pattern as
 Modulo Squares.
 
-Related docs: [Business Requirements](./BUSINESS_REQUIREMENTS.md) ·
-[Technical Requirements](./TECHNICAL_REQUIREMENTS.md)
+Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
+[Technical Requirements](./docs/TECHNICAL_REQUIREMENTS.md)
 
 ## Layout
 
