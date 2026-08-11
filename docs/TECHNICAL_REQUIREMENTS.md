@@ -25,7 +25,7 @@ This document specifies the deterministic simulation and mobile-client capabilit
 - Local progression, settings, statistics, and save migrations.
 - Accessible presentation, audio, and haptics.
 - Optional privacy-minimized analytics and crash reporting.
-- Ad SDK integration (AdMob): persistent top banner plus interstitials between scenarios, gated behind a consent (GDPR/UMP, App Tracking Transparency) flow, never shown during active placement.
+- Ad SDK integration (AdMob): persistent top banner on every non-gameplay screen (including pause), plus one interstitial per completed/exited scenario on the way back to a non-gameplay screen, gated behind a consent (GDPR/UMP, App Tracking Transparency) flow. Never shown during active placement, never gating the start of a scenario, never on ordinary menu navigation.
 - Store purchase integration for the single ad-removal entitlement.
 
 ### Excluded from MVP
@@ -120,7 +120,7 @@ Random request generation shall use a versioned pseudo-random algorithm and stor
 | MAS-TR-012 | Analytics shall avoid personally identifying data and shall never include a raw device interaction recording by default.              | MAS-BR-011             |
 | MAS-TR-013 | Every third-party dependency and asset shall have retained provenance and license metadata.                                           | MAS-BR-009             |
 | MAS-TR-014 | Purchase failure, cancellation, restore, pending status, and offline entitlement shall not corrupt progression.                       | MAS-BR-007             |
-| MAS-TR-015 | The ad layer shall be hidden behind an interface with a deterministic fake for tests, shall load consent state before any ad request, and shall suppress all ad units when the ad-removal entitlement is active. | MAS-BR-007, MAS-BR-015 |
+| MAS-TR-015 | The ad layer shall be hidden behind an interface with a deterministic fake for tests, shall load consent state before any ad request, shall suppress all ad units when the ad-removal entitlement is active, and shall enforce a minimum interval between interstitials so accidental extra calls cannot spam ads. | MAS-BR-007, MAS-BR-015 |
 
 ## 8. Scoring and balance
 
