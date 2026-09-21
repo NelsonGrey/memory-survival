@@ -14,7 +14,7 @@
 
 This is a private repository, so please do not open a public issue for a security concern.
 
-Instead, email **admin@nelsongrey.com** with:
+Instead, email **support@nelsongrey.com** with:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce, or a proof of concept if available
