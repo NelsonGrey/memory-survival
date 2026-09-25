@@ -2,26 +2,29 @@
 
 ## Supported Versions
 
-**Memory-Allocation Survival** is currently in discovery / pre-release status — see [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md). Development flows `develop` → `staging` → `main`; only the code on these three branches is supported, there is no long-term support for older commits.
+This repository holds Memory-Allocation Survival, a Flutter + Firebase mobile puzzle-game client and Cloud Functions backend built on the Modulo Squares portfolio architecture. Only the code currently deployed on each environment branch is supported — there is no long-term support for older commits.
 
-| Branch    | Environment | GCP project          | Status                        |
-| --------- | ----------- | --------------------- | ------------------------------ |
-| `develop` | Development | `memory-alloc-survival-dev`     | Active, default branch          |
-| `staging` | Staging     | `memory-alloc-survival-staging` | Active                           |
-| `main`    | Production  | `memory-alloc-survival-prod`    | Provisioned, not yet released    |
+| Branch | Environment | Status |
+|---|---|---|
+| `main` | Production | Supported |
+| `staging` | Staging | Supported |
+| `develop` | Development | Supported |
 
 ## Reporting a Vulnerability
 
-This is a private repository, so please do not open a public issue for a security concern.
+This repository doesn't have a public issue tracker, so please don't report security concerns that way. Use one of:
 
-Instead, email **support@nelsongrey.com** with:
+- GitHub's [private vulnerability reporting](https://github.com/NelsonGrey/memory-survival/security/advisories/new), or
+- Email **support@nelsongrey.com**
+
+Either way, include:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce, or a proof of concept if available
 - Any relevant logs, request/response samples, or affected endpoints
 
-You should get an acknowledgement within a few business days. This is a small, pre-release project without a formal bug bounty program, but genuine reports are taken seriously and fixed promptly.
+You should get an acknowledgement within a few business days.
 
 ## Automated Dependency Scanning
 
-Dependabot alerts are enabled on this repository (org default), and `.github/dependabot.yml` opens weekly update PRs for GitHub Actions, the Cloud Functions npm dependencies, and the Flutter/pub dependencies. Native GitHub secret scanning and code scanning (CodeQL) require GitHub Advanced Security, which isn't currently licensed for this org's private repositories, so neither is enabled here. Avoid committing credentials or secrets to this repo regardless — downloaded Firebase config (`firebase-config/`) is gitignored, and there are no other runtime secrets checked in.
+Dependabot alerts are enabled on this repository, and `.github/dependabot.yml` opens update PRs for GitHub Actions, the Cloud Functions npm dependencies, and the Flutter/pub dependencies. Native GitHub secret scanning and code scanning (CodeQL) require GitHub Advanced Security, which isn't currently licensed for this org's private repositories, so neither is enabled here. Avoid committing credentials or secrets regardless — runtime secrets are managed via Firebase Secret Manager / GitHub Actions secrets, never committed to source, and downloaded per-environment Firebase config (`firebase-config/`) is gitignored.
