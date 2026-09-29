@@ -1,12 +1,22 @@
 # Memory-Allocation Survival
 
+[![CI](https://github.com/NelsonGrey/memory-survival/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/NelsonGrey/memory-survival/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-proprietary-lightgrey.svg)](https://github.com/NelsonGrey/memory-survival/blob/develop/LICENSE)
+
+## Contents
+
+- [Repository Structure](#repository-structure)
+- [Firebase projects](#firebase-projects)
+- [Deliverables](#deliverables)
+- [Store setup still required manually](#store-setup-still-required-manually)
+- [Getting Started](#getting-started)
+
 Flutter + Firebase monorepo, following the same architecture pattern as
 Modulo Squares.
 
 Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
 [Technical Requirements](./docs/TECHNICAL_REQUIREMENTS.md)
 
-## Layout
+## Repository Structure
 
 - `packages/mobile` — Flutter client (iOS + Android). Depends on [game-shell](https://github.com/NelsonGrey/game-shell) for auth, ads, consent, and the ad-removal entitlement — see that repo before reimplementing any of those.
 - `packages/functions` — Firebase Cloud Functions (Node 22 / TypeScript)
@@ -46,7 +56,7 @@ Google Play Console and Apple App Store Connect have no public API for
 **creating a brand-new app listing** — that first step has to happen in
 each console's UI. See `docs/STORE_SETUP.md` for the exact values to enter.
 
-## Getting started
+## Getting Started
 
 ```bash
 cd packages/mobile
@@ -55,7 +65,3 @@ cp ../../firebase-config/GoogleService-Info.dev.plist ios/Runner/GoogleService-I
 flutter pub get
 flutter run
 ```
-
-## License
-
-See [LICENSE](LICENSE). Security issues: see [SECURITY.md](SECURITY.md).
