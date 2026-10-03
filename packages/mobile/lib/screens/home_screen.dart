@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
+import '../game/game_screen.dart';
 import '../shell/shell.dart';
 import 'game_center_widgets.dart';
 import 'settings_screen.dart';
 
-/// Placeholder home screen: the gameplay entry point lands here once the
-/// allocation engine exists. Carries the banner like every non-gameplay
-/// screen (MAS-BR-015).
+/// Home screen: starts an endless run or opens Settings. Carries the banner
+/// like every non-gameplay screen (MAS-BR-015).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.services});
 
@@ -62,6 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => GameScreen(services: services),
+                        ),
+                      ),
+                      child: const Text('Play'),
+                    ),
+                    const SizedBox(height: 16),
                     GameCenterBadge(services: services),
                     const SizedBox(height: 16),
                     OutlinedButton(

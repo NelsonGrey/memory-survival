@@ -30,11 +30,12 @@ Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
 Pre-release, discovery. The app shell is in place and verified (analyze,
 tests, and an iOS simulator build): ads and consent, the one-time ad-removal
 purchase, Game Center sign-in and its first-run prompt, and Settings (palette,
-Game Center, purchases, relaxed clock, legal links). The home screen is a
-placeholder.
+Game Center, purchases, relaxed clock, legal links). The deterministic
+allocation engine (`lib/engine/`) and a first playable endless run
+(`lib/game/`, tap-only, placeholder balance) are in.
 
-**Not built yet:** the allocation engine and gameplay, the 36 authored
-scenarios, endless mode and its leaderboard submission, the original visual
+**Not built yet:** the 36 authored scenarios and scenario validator, endless
+score persistence and leaderboard submission, tutorial, the original visual
 identity (MAS-BR-009), and gameplay analytics.
 
 ## Repository Structure

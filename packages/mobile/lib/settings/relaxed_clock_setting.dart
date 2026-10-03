@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The "Relaxed clock" accessibility setting: when on, every clock tick
-/// lasts `relaxedClockMultiplier` (lib/content/clock.dart) times as long. Off by default.
+/// lasts `relaxedClockMultiplier` (lib/game/game_controller.dart) times as long. Off by default.
 class RelaxedClockSetting extends ValueNotifier<bool> {
   RelaxedClockSetting() : super(false);
 
