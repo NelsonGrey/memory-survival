@@ -82,6 +82,8 @@ void main() {
 
     final tile = find.widgetWithText(SwitchListTile, 'Connect to Game Center');
     await tester.scrollUntilVisible(tile, 200);
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
     await tester.tap(tile);
     await tester.pumpAndSettle();
     expect(connection.isConnected, isTrue);

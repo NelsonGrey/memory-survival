@@ -8,6 +8,7 @@ import '../gamecenter/fake_game_center_progress_service.dart';
 import '../gamecenter/game_center_connection.dart';
 import '../gamecenter/game_center_progress_service.dart';
 import '../gamecenter/games_services_progress_service.dart';
+import '../layout/game_layout.dart';
 import '../settings/relaxed_clock_setting.dart';
 import '../theme/theme_controller.dart';
 
@@ -36,9 +37,11 @@ class AppServices {
     GameCenterProgressService? progress,
     GameCenterConnection? connection,
     ThemeController? theme,
+    LayoutController? layout,
     RelaxedClockSetting? relaxedClock,
     UrlOpener? openUrl,
   }) : theme = theme ?? ThemeController(),
+       layout = layout ?? LayoutController(),
        relaxedClock = relaxedClock ?? RelaxedClockSetting(),
        openUrl = openUrl ?? _defaultOpenUrl,
        consent = consent ?? UmpConsentService(),
@@ -97,6 +100,9 @@ class AppServices {
   /// here so every screen reaches it the same way.
   final ThemeController theme;
 
+  /// The player's gameplay layout.
+  final LayoutController layout;
+
   /// Accessibility: doubles simulation ticks when on.
   final RelaxedClockSetting relaxedClock;
 
@@ -110,6 +116,7 @@ class AppServices {
     _initialized = true;
 
     await theme.load();
+    await layout.load();
     await relaxedClock.load();
     await consent.requestConsent();
     await entitlement.restore();

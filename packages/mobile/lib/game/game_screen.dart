@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
 import '../engine/engine.dart';
+import '../layout/game_layout.dart';
 import '../shell/shell.dart';
 import '../theme/game_theme.dart';
 import 'explain.dart';
@@ -96,7 +97,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([_game, services.theme]),
+      listenable: Listenable.merge([_game, services.theme, services.layout]),
       builder: (context, _) {
         final p = services.theme.palette;
         final over = !_game.isPlaying;
@@ -129,93 +130,175 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Widget _playfield(GameThemePalette p) {
+    final layout = services.layout.layout;
     final s = _game.state;
-    final sel = _game.selected;
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    final strip = MemoryStrip(
+      state: s,
+      palette: p,
+      onCellTap: _game.placeAt,
+      lines: layout.lines,
+      vertical: layout.vertical,
+      showAddresses: layout.showAddresses,
+    );
+    final stats = _statsRow(p, s, layout);
+    final controls = [
+      _messageText(p),
+      _queue(p, s),
+      const SizedBox(height: 12),
+      ..._gapPicker(p),
+    ];
+
+    final Widget body;
+    if (layout.vertical) {
+      body = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _stat(p, 'Score', '${s.score.points}'),
-              _stat(p, 'Time', '${s.cycle}'),
-              _stat(p, 'Free', '${s.freeCells}'),
-              _stat(p, 'Biggest gap', '${s.largestFreeBlock}'),
-              IconButton(
-                tooltip: 'Pause',
-                onPressed: () => _game.setPaused(true),
-                icon: Icon(Icons.pause_circle_outline, color: p.textPrimary),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          MemoryStrip(state: s, palette: p, onCellTap: _game.placeAt),
+          stats,
           const SizedBox(height: 12),
-          SizedBox(
-            height: 40,
-            child: Text(
-              _game.message ??
-                  (sel == null
-                      ? 'Waiting for a request…'
-                      : 'Tap a cell to place request #${sel.id} '
-                            '(${sel.size} cells), or pick a gap below.'),
-              style: TextStyle(
-                color: _game.message == null ? p.textMuted : p.danger,
-                fontSize: 13,
-              ),
-            ),
-          ),
-          Text('Waiting', style: TextStyle(color: p.textMuted, fontSize: 12)),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final r in s.requestQueue)
-                _requestChip(p, r, selected: r.id == sel?.id),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (sel != null) ...[
-            Text(
-              'Place in a gap',
-              style: TextStyle(color: p.textMuted, fontSize: 12),
-            ),
-            const SizedBox(height: 6),
-            if (_game.fittingGaps.isEmpty)
-              Text(
-                'No gap is big enough. Wait for space to free up, or compact.',
-                style: TextStyle(color: p.danger, fontSize: 13),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final g in _game.fittingGaps)
-                    FilledButton(
-                      onPressed: () => _game.placeAt(g.start),
-                      child: Text('Cells ${g.start}–${g.end - 1}'),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 130, child: strip),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: controls,
                     ),
-                ],
-              ),
-          ],
-          const Spacer(),
-          OutlinedButton.icon(
-            onPressed: s.compactionsLeft > 0 ? _game.compact : null,
-            icon: const Icon(Icons.compress),
-            label: Text(
-              'Compact (${s.compactionsLeft} left) · '
-              'costs ${widget.rules.compactionTickCost} ticks, '
-              '${widget.rules.compactionPointCost} pts',
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 12),
+          _compactButton(s),
         ],
+      );
+    } else if (layout.controlsFirst) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          stats,
+          const SizedBox(height: 12),
+          ...controls,
+          const Spacer(),
+          strip,
+          const SizedBox(height: 12),
+          _compactButton(s),
+        ],
+      );
+    } else {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          stats,
+          const SizedBox(height: 16),
+          strip,
+          const SizedBox(height: 12),
+          ...controls,
+          const Spacer(),
+          _compactButton(s),
+        ],
+      );
+    }
+    return Padding(padding: const EdgeInsets.all(16), child: body);
+  }
+
+  Widget _statsRow(GameThemePalette p, MemoryState s, GameLayout layout) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _stat(p, 'Score', '${s.score.points}'),
+        _stat(p, 'Time', '${s.cycle}'),
+        if (layout.showAdvancedStats) ...[
+          _stat(p, 'Free', '${s.freeCells}'),
+          _stat(p, 'Biggest gap', '${s.largestFreeBlock}'),
+        ],
+        IconButton(
+          tooltip: 'Pause',
+          onPressed: () => _game.setPaused(true),
+          icon: Icon(Icons.pause_circle_outline, color: p.textPrimary),
+        ),
+      ],
+    );
+  }
+
+  Widget _messageText(GameThemePalette p) {
+    final sel = _game.selected;
+    return SizedBox(
+      height: 40,
+      child: Text(
+        _game.message ??
+            (sel == null
+                ? 'Waiting for a request…'
+                : 'Tap a cell to place request #${sel.id} '
+                      '(${sel.size} cells), or pick a gap below.'),
+        style: TextStyle(
+          color: _game.message == null ? p.textMuted : p.danger,
+          fontSize: 13,
+        ),
       ),
     );
   }
+
+  Widget _queue(GameThemePalette p, MemoryState s) {
+    final sel = _game.selected;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Waiting', style: TextStyle(color: p.textMuted, fontSize: 12)),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final r in s.requestQueue)
+              _requestChip(p, r, selected: r.id == sel?.id),
+          ],
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _gapPicker(GameThemePalette p) {
+    if (_game.selected == null) return const [];
+    return [
+      Text(
+        'Place in a gap',
+        style: TextStyle(color: p.textMuted, fontSize: 12),
+      ),
+      const SizedBox(height: 6),
+      if (_game.fittingGaps.isEmpty)
+        Text(
+          'No gap is big enough. Wait for space to free up, or compact.',
+          style: TextStyle(color: p.danger, fontSize: 13),
+        )
+      else
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final g in _game.fittingGaps)
+              FilledButton(
+                onPressed: () => _game.placeAt(g.start),
+                child: Text('Cells ${g.start}–${g.end - 1}'),
+              ),
+          ],
+        ),
+    ];
+  }
+
+  Widget _compactButton(MemoryState s) => OutlinedButton.icon(
+    onPressed: s.compactionsLeft > 0 ? _game.compact : null,
+    icon: const Icon(Icons.compress),
+    label: Text(
+      'Compact (${s.compactionsLeft} left) · '
+      'costs ${widget.rules.compactionTickCost} ticks, '
+      '${widget.rules.compactionPointCost} pts',
+    ),
+  );
 
   Widget _stat(GameThemePalette p, String label, String value) => Column(
     children: [

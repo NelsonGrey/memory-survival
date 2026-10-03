@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Identifies one of the built-in gameplay palettes. Persisted by name (see
 /// [ThemeController]) — renaming a value here changes what a player who
 /// already picked a non-default palette sees next launch.
-enum GameThemeId { dark, light }
+enum GameThemeId { dark, light, highContrast, ember, forest }
 
 /// A complete color palette for the gameplay screen. Every themed surface
 /// reads from one of these rather than hardcoding a color;
@@ -77,10 +77,61 @@ const Map<GameThemeId, GameThemePalette> gameThemePalettes = {
     buttonBg: Color(0xFF2F6AA0),
     buttonFg: Color(0xFFFFFFFF),
   ),
+  // Maximum-legibility option: pure black page, white text, saturated marks.
+  GameThemeId.highContrast: GameThemePalette(
+    name: 'High contrast',
+    pageBg: Color(0xFF000000),
+    textPrimary: Color(0xFFFFFFFF),
+    textMuted: Color(0xFFE0E0E0),
+    cellFree: Color(0xFF111111),
+    cellFreeBorder: Color(0xFFFFFFFF),
+    cellUsed: Color(0xFF1F5FD1),
+    cellUsedFg: Color(0xFFFFFFFF),
+    ok: Color(0xFFFFE066),
+    danger: Color(0xFFFF9C8F),
+    buttonBg: Color(0xFF1F5FD1),
+    buttonFg: Color(0xFFFFFFFF),
+  ),
+  // Warm dark: coals and amber. Used blocks are orange-brown, free cells ash.
+  GameThemeId.ember: GameThemePalette(
+    name: 'Ember',
+    pageBg: Color(0xFF1C1411),
+    textPrimary: Color(0xFFF7EBDD),
+    textMuted: Color(0xFFCDB8A4),
+    cellFree: Color(0xFF2A1F1A),
+    cellFreeBorder: Color(0xFF9C8573),
+    cellUsed: Color(0xFFB5501A),
+    cellUsedFg: Color(0xFFFFFFFF),
+    ok: Color(0xFFA6E08A),
+    danger: Color(0xFFFF8F7A),
+    buttonBg: Color(0xFFB5501A),
+    buttonFg: Color(0xFFFFFFFF),
+  ),
+  // Cool dark green: moss and mint.
+  GameThemeId.forest: GameThemePalette(
+    name: 'Forest',
+    pageBg: Color(0xFF0E1A15),
+    textPrimary: Color(0xFFE6F2EA),
+    textMuted: Color(0xFFA4BDAE),
+    cellFree: Color(0xFF16261E),
+    cellFreeBorder: Color(0xFF6F9A84),
+    cellUsed: Color(0xFF2E7D5B),
+    cellUsedFg: Color(0xFFFFFFFF),
+    ok: Color(0xFFF2D675),
+    danger: Color(0xFFFF8F80),
+    buttonBg: Color(0xFF2E7D5B),
+    buttonFg: Color(0xFFFFFFFF),
+  ),
 };
 
 /// Display order for the palette picker; dark is the default for new players.
-const List<GameThemeId> gameThemeOrder = [GameThemeId.dark, GameThemeId.light];
+const List<GameThemeId> gameThemeOrder = [
+  GameThemeId.dark,
+  GameThemeId.light,
+  GameThemeId.highContrast,
+  GameThemeId.ember,
+  GameThemeId.forest,
+];
 
 const GameThemeId defaultGameTheme = GameThemeId.dark;
 
