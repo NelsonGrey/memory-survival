@@ -1,54 +1,54 @@
-# Memory-Allocation Survival
+# Memory Survival
 
 [![CI](https://github.com/NelsonGrey/memory-survival/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/NelsonGrey/memory-survival/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-proprietary-lightgrey.svg)](https://github.com/NelsonGrey/memory-survival/blob/develop/LICENSE)
 
 ## Contents
 
+- [Status](#status)
 - [Repository Structure](#repository-structure)
-- [Firebase projects](#firebase-projects)
 - [Deliverables](#deliverables)
 - [Store setup still required manually](#store-setup-still-required-manually)
+- [Legal/support pages](#legalsupport-pages)
 - [Getting Started](#getting-started)
 
-Flutter + Firebase monorepo, following the same architecture pattern as
-Modulo Squares.
+Flutter monorepo. No custom backend: sign-in, leaderboards, achievements,
+and cloud save go through each platform's own game-services layer (Game
+Center on iOS; Play Games Services on Android, once testing resumes) rather
+than a shared Firebase project. This is the same framework as
+[Intercept Echo](https://github.com/NelsonGrey/intercept-echo).
+
+Memory Survival is a one-dimensional memory-allocation puzzle: processes of
+different sizes and lifetimes arrive, and the player places each one in a
+contiguous run of cells. Total free space can be enough while no single gap
+is — that's fragmentation, and compaction is a costly way out.
 
 Related docs: [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md) ·
 [Technical Requirements](./docs/TECHNICAL_REQUIREMENTS.md)
 
+## Status
+
+Pre-release, discovery. The app shell is in place and verified (analyze,
+tests, and an iOS simulator build): ads and consent, the one-time ad-removal
+purchase, Game Center sign-in and its first-run prompt, and Settings (palette,
+Game Center, purchases, relaxed clock, legal links). The home screen is a
+placeholder.
+
+**Not built yet:** the allocation engine and gameplay, the 36 authored
+scenarios, endless mode and its leaderboard submission, the original visual
+identity (MAS-BR-009), and gameplay analytics.
+
 ## Repository Structure
 
-- `packages/mobile` — Flutter client (iOS + Android). Depends on [game-shell](https://github.com/NelsonGrey/game-shell) for auth, ads, consent, and the ad-removal entitlement — see that repo before reimplementing any of those.
-- `packages/functions` — Firebase Cloud Functions (Node 22 / TypeScript)
-- `packages/firestore-rules` — Firestore security rules
-- `packages/web` — landing page (Firebase Hosting)
-- `firebase-config/` — downloaded per-environment Firebase config files (gitignored)
+- `packages/mobile` — Flutter client (iOS + Android). Carries its own ads, consent, ad-removal entitlement, and Game Center sign-in under `lib/shell/` and `lib/gamecenter/` (ported from Intercept Echo, now maintained here).
 
-## Firebase projects
-
-| Env     | Project ID              |
-| ------- | ------------------------ |
-| dev     | `memory-alloc-survival-dev`     |
-| staging | `memory-alloc-survival-staging` |
-| prod    | `memory-alloc-survival-prod`    |
-
-Bundle/package ID base: `com.memoryallocationsurvival`
+Bundle/package ID base: `com.memorysurvival`
 
 ## Deliverables
 
-Each game in this portfolio ships three deliverables:
-
 | Deliverable | Platform | Identifier | Status |
 | --- | --- | --- | --- |
-| Android app | Google Play | `com.memoryallocationsurvival.app.android` | Firebase-registered; Play Console listing not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
-| iOS app | Apple App Store Connect | `com.memoryallocationsurvival.app.ios` | Firebase-registered; ASC app record not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
-| Website | Firebase Hosting | `memory-alloc-survival-{env}.web.app` | **Dev live**; staging/prod configured, not yet deployed |
-
-Website URLs (redeploy with `firebase deploy --only hosting --project <env>`, or run the equivalent Hosting REST API calls if `firebase login` has not been done on this machine):
-
-- Dev: https://memory-alloc-survival-dev.web.app &mdash; **live**
-- Staging: https://memory-alloc-survival-staging.web.app &mdash; not yet deployed
-- Prod: https://memory-alloc-survival-prod.web.app &mdash; not yet deployed
+| Android app | Google Play | `com.memorysurvival.app.android` | Kept buildable; no tester group yet, Play Console listing not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
+| iOS app | Apple App Store Connect | `com.memorysurvival.app.ios` | Bundle ID not yet registered; app record not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
 
 ## Store setup still required manually
 
@@ -56,12 +56,18 @@ Google Play Console and Apple App Store Connect have no public API for
 **creating a brand-new app listing** — that first step has to happen in
 each console's UI. See `docs/STORE_SETUP.md` for the exact values to enter.
 
+## Legal/support pages
+
+This project has no marketing site of its own. Privacy/Terms/Support live on
+the Nelson Grey site, under `games/memory-survival/` in the `nelson-grey`
+repo — see `docs/STORE_SETUP.md` for the URLs.
+
 ## Getting Started
 
 ```bash
 cd packages/mobile
-cp ../../firebase-config/google-services.dev.json android/app/google-services.json
-cp ../../firebase-config/GoogleService-Info.dev.plist ios/Runner/GoogleService-Info.plist
 flutter pub get
 flutter run
 ```
+
+Ads run on Google's public test IDs until this game has its own AdMob app.

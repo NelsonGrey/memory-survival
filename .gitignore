@@ -1,13 +1,15 @@
 .DS_Store
+.vscode/
 node_modules/
 packages/mobile/build/
+packages/mobile/test/failures/
 packages/mobile/.dart_tool/
 packages/mobile/.flutter-plugins*
-packages/functions/lib/
-packages/functions/node_modules/
-firebase-config/*.json
-firebase-config/*.plist
-.firebase/
+packages/mobile/ios/.bundle/
+packages/mobile/ios/vendor/
+packages/mobile/ios/fastlane/report.xml
+# Leftover local Firebase config from before the project dropped Firebase.
+firebase-config/
 *.log
 .env
 .env.*

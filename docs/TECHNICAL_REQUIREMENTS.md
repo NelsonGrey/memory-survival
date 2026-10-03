@@ -1,4 +1,4 @@
-# Memory-Allocation Survival — Technical Requirements
+# Memory Survival — Technical Requirements
 
 **Document type:** Technical Requirements Document (TRD)  
 **Version:** 0.1  
@@ -7,11 +7,10 @@
 **Owner:** Mark Nelson
 
 Related document: [Business Requirements](./BUSINESS_REQUIREMENTS.md)  
-Portfolio context: [Requirements Index](../../PORTFOLIO_REQUIREMENTS_INDEX.md)
 
 ## 1. Purpose
 
-This document specifies the deterministic simulation and mobile-client capabilities required for the memory-allocation survival concept. The system must make capacity, contiguity, lifetime, fragmentation, deallocation, and compaction accurate within the game's declared simplified model.
+This document specifies the deterministic simulation and mobile-client capabilities required for the Memory Survival concept. The system must make capacity, contiguity, lifetime, fragmentation, deallocation, and compaction accurate within the game's declared simplified model.
 
 ## 2. System scope
 
@@ -26,9 +25,9 @@ This document specifies the deterministic simulation and mobile-client capabilit
 - Accessible presentation, audio, and haptics.
 - Optional privacy-minimized analytics and crash reporting.
 - Ad SDK integration (AdMob): persistent top banner on every non-gameplay screen (including pause), plus one interstitial per completed/exited scenario on the way back to a non-gameplay screen, gated behind a consent (GDPR/UMP, App Tracking Transparency) flow. Never shown during active placement, never gating the start of a scenario, never on ordinary menu navigation.
-- Firebase Authentication (Google/Apple sign-in) gating access to gameplay, matching the portfolio's account-required access model.
-- Cloud Firestore sync for progress, statistics, and leaderboard scores, with local caching for offline play between sync points.
-- Global leaderboard for endless survival score, backed by Firestore with server-side-enforced security rules.
+- Optional platform game-services sign-in (Game Center on iOS; Play Games Services on Android, once testing resumes), offered on first launch and from Settings. It never gates gameplay. No custom backend.
+- Local persistence for progress, statistics, and settings, with the platform's saved-game service syncing progress across a signed-in player's devices.
+- Per-platform leaderboard for endless survival score, submitted through Game Center (iOS) / Play Games Services (Android) rather than a custom server.
 - Store purchase integration for the single ad-removal entitlement.
 
 ### Excluded from MVP
@@ -124,8 +123,8 @@ Random request generation shall use a versioned pseudo-random algorithm and stor
 | MAS-TR-013 | Every third-party dependency and asset shall have retained provenance and license metadata.                                           | MAS-BR-009             |
 | MAS-TR-014 | Purchase failure, cancellation, restore, pending status, and offline entitlement shall not corrupt progression.                       | MAS-BR-007             |
 | MAS-TR-015 | The ad layer shall be hidden behind an interface with a deterministic fake for tests, shall load consent state before any ad request, shall suppress all ad units when the ad-removal entitlement is active, and shall enforce a minimum interval between interstitials so accidental extra calls cannot spam ads. | MAS-BR-007, MAS-BR-015 |
-| MAS-TR-016 | Gameplay shall be gated behind Google/Apple sign-in via Firebase Auth; unauthenticated users shall see only the sign-in flow. | MAS-BR-006 |
-| MAS-TR-017 | Progress and leaderboard scores shall sync to Cloud Firestore under user-scoped security rules, with rate-limited score submission and offline-cached local fallback. | MAS-BR-016 |
+| MAS-TR-016 | Platform game-services sign-in (Game Center on iOS; Play Games Services on Android, once testing resumes) shall be strictly opt-in: the player is offered it once, can connect or disconnect from Settings, and every game mode works without it. No platform call shall be made until the player connects. | MAS-BR-006 |
+| MAS-TR-017 | Endless survival scores shall submit to the platform's own leaderboard service while connected, with local caching so a score earned offline or while disconnected submits on the next successful connection, and no custom backend involved. | MAS-BR-016 |
 
 ## 8. Scoring and balance
 
@@ -137,7 +136,7 @@ Balance simulations shall evaluate representative placement policies and random 
 
 The game shall persist progression, settings, statistics, entitlement state, best scores with ruleset versions, and an interrupted-run snapshot if resumption is supported. Backgrounding must pause or advance simulation according to an explicit mode policy; it may not silently consume process lifetimes while the player cannot interact.
 
-Progress, statistics, and leaderboard scores sync to Cloud Firestore under a `users/{userId}/` document (`profile`, `gameState`, `achievements`) plus a `leaderboards/global/scores/{scoreId}` collection (`userId`, `playerName`, `score`, `timestamp`), matching Modulo Squares' schema. Firestore security rules shall enforce user-scoped read/write access and rate-limit score submissions. Local caching keeps the game playable offline between sync points; sync conflicts resolve by keeping the higher score / latest progress rather than silently overwriting.
+Progress, statistics, and settings persist locally. For a signed-in player, progress also syncs through the platform's saved-game service (Game Center saved games on iOS), merged by keeping the higher score and latest progress rather than silently overwriting. Endless survival scores submit directly to the platform's leaderboard service, which owns score storage, ranking, and cross-device consistency on that platform; leaderboards are per-platform and not unified across iOS and Android. A score earned while disconnected is cached and submits on the next successful connection.
 
 ## 10. Telemetry
 
@@ -151,7 +150,7 @@ The minimum event catalog should include:
 - Endless-run score and duration bands.
 - Purchase outcome if applicable.
 - Ad impression and click events (aggregate SDK-reported events only, no custom cross-app tracking).
-- Sign-in method and outcome (Google/Apple).
+- Platform sign-in opt-in and outcome (Game Center/Play Games Services).
 - Leaderboard view and submission events.
 - Accessibility setting enabled.
 
@@ -167,7 +166,7 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Golden tests at supported sizes, orientations, themes, and text scales.
 - Integration tests for interruption, restore, migration, offline play, and purchase states.
 - Ad-layer tests: consent flow, ad load failure/fallback, and entitlement-based ad suppression using the deterministic fake.
-- Integration tests for sign-in flow, Firestore sync (including conflict resolution), and leaderboard submission/rate-limiting.
+- Integration tests for platform sign-in opt-in/opt-out and leaderboard submission, using each platform's deterministic fake, plus saved-game merge (conflict resolution) tests.
 - Accessibility and device-performance testing across the approved matrix.
 
 ## 12. Release gates
@@ -180,4 +179,4 @@ Telemetry shall use aggregate numeric or enum fields rather than process names o
 - Crash-free staged rollout meets the business target.
 - Dependency, asset-license, privacy, analytics, and store-purchase audits complete.
 - Ad content and placement reviewed against Google Play and Apple App Store ad policies, with consent flow verified for GDPR/UMP and App Tracking Transparency.
-- Firestore security rules reviewed and tested (user-scoped access, score-submission rate limiting).
+- Gameplay verified reachable with platform sign-in declined, disconnected, and unavailable.

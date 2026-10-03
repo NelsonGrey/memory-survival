@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-This repository holds Memory-Allocation Survival, a Flutter + Firebase mobile puzzle-game client and Cloud Functions backend built on the Modulo Squares portfolio architecture. Only the code currently deployed on each environment branch is supported — there is no long-term support for older commits.
+**Memory Survival** is currently in discovery / pre-release status — see [Business Requirements](./docs/BUSINESS_REQUIREMENTS.md). Development flows `develop` → `staging` → `main`; only the code on these three branches is supported, there is no long-term support for older commits. There is no backend project (Game Center/Play Games Services hold all account state — see the README), so there's no separate per-environment infrastructure to track here.
 
 | Branch | Environment | Status |
 |---|---|---|
@@ -27,4 +27,4 @@ You should get an acknowledgement within a few business days.
 
 ## Automated Dependency Scanning
 
-Dependabot alerts are enabled on this repository, and `.github/dependabot.yml` opens update PRs for GitHub Actions, the Cloud Functions npm dependencies, and the Flutter/pub dependencies. Native GitHub secret scanning and code scanning (CodeQL) require GitHub Advanced Security, which isn't currently licensed for this org's private repositories, so neither is enabled here. Avoid committing credentials or secrets regardless — runtime secrets are managed via Firebase Secret Manager / GitHub Actions secrets, never committed to source, and downloaded per-environment Firebase config (`firebase-config/`) is gitignored.
+Dependabot alerts are enabled on this repository, and `.github/dependabot.yml` opens update PRs for GitHub Actions and the Flutter/pub dependencies. Native GitHub secret scanning and code scanning (CodeQL) require GitHub Advanced Security, which isn't currently licensed for this org's private repositories, so neither is enabled here. Avoid committing credentials or secrets regardless — CI and release secrets live in GitHub Actions secrets, never in source.
