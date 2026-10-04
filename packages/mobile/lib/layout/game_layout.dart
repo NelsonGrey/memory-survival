@@ -75,7 +75,7 @@ const List<GameLayoutId> gameLayoutOrder = [
   GameLayoutId.tower,
 ];
 
-const GameLayoutId defaultGameLayout = GameLayoutId.classic;
+const GameLayoutId defaultGameLayout = GameLayoutId.tower;
 
 /// Holds the player's chosen layout and persists it.
 class LayoutController extends ValueNotifier<GameLayoutId> {
