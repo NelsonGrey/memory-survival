@@ -72,6 +72,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Not now'));
       await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Daily run'));
       await tester.tap(find.text('Daily run'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
@@ -247,7 +248,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: ScenarioSelectScreen(services: services)),
       );
-      expect(find.text('Chapter 1: Contiguous cells'), findsOneWidget);
+      expect(find.text('CHAPTER 1'), findsOneWidget);
+      expect(find.text('Contiguous cells'), findsOneWidget);
       expect(find.text('1. First steps'), findsOneWidget);
       expect(find.text('2. Wider requests'), findsOneWidget);
       expect(find.textContaining('2 of 108 stars'), findsOneWidget);

@@ -10,6 +10,7 @@ import '../screens/settings_screen.dart';
 import '../settings/personal_bests.dart';
 import '../shell/shell.dart';
 import '../theme/game_theme.dart';
+import '../theme/memory_survival_brand.dart';
 import 'explain.dart';
 import 'game_controller.dart';
 import 'game_widgets.dart';
@@ -254,7 +255,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 top: false,
                 child: Stack(
                   children: [
-                    _playfield(p),
+                    CorridorBackdrop(
+                      palette: p,
+                      intensity: 0.85,
+                      pressure: wavePressure(_game.state),
+                      child: _playfield(p),
+                    ),
                     if (_game.paused && !over) _pauseCard(p),
                     if (over) _resultsCard(p),
                   ],
@@ -797,6 +803,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _pauseCard(GameThemePalette p) => _overlay(
     p,
     children: [
+      const Center(child: BrandMark(size: 64)),
+      const SizedBox(height: 16),
       Text(
         'Paused',
         textAlign: TextAlign.center,
@@ -833,6 +841,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     return _overlay(
       p,
       children: [
+        const Center(child: BrandMark(size: 64)),
+        const SizedBox(height: 16),
         Text(
           title,
           textAlign: TextAlign.center,

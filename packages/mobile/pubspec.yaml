@@ -73,6 +73,9 @@ flutter:
   # appears on the in-app licences page. Provenance: docs/ASSET_PROVENANCE.md.
   assets:
     - assets/fonts/Sora-OFL.txt
+    - assets/branding/memory-survival-mark.png
+    - assets/branding/memory-survival-wordmark.png
+    - assets/branding/memory-survival-wordmark-stacked.png
 
   fonts:
     - family: Sora

@@ -39,8 +39,15 @@ class MemoryStrip extends StatelessWidget {
               ? constraints.maxHeight / state.cellCount
               : 32.0,
         );
-        return SizedBox(
+        return Container(
           height: cellH * state.cellCount,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: palette.cellFreeBorder.withValues(alpha: 0.6),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
           child: Stack(
             children: [
               Positioned.fill(
@@ -127,45 +134,70 @@ class MemoryStrip extends StatelessWidget {
       (p.id % 3) * 0.18,
     )!;
     final leak = p.releasePolicy == ReleasePolicy.leak;
+    final label = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Padding(
+        padding: const EdgeInsets.all(2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              leak ? '∞' : '${p.remaining}',
+              style: TextStyle(
+                color: palette.cellUsedFg,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '#${p.id}',
+              style: TextStyle(color: palette.cellUsedFg, fontSize: 10),
+            ),
+            if (p.pinned)
+              Icon(Icons.push_pin, size: 10, color: palette.cellUsedFg),
+            if (p.pointsFactor > 1)
+              Icon(Icons.star, size: 10, color: palette.cellUsedFg),
+            if (p.linkedWith != null)
+              Icon(Icons.link, size: 10, color: palette.cellUsedFg),
+          ],
+        ),
+      ),
+    );
     return Container(
       margin: const EdgeInsets.all(1),
       decoration: BoxDecoration(
         color: shade,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(7),
         border: Border.all(
-          color: leak ? palette.danger : palette.cellUsedFg,
+          color: leak
+              ? palette.danger
+              : palette.cellUsedFg.withValues(alpha: 0.55),
           width: leak ? 2 : 1,
         ),
       ),
-      alignment: Alignment.center,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Padding(
-          padding: const EdgeInsets.all(2),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                leak ? '∞' : '${p.remaining}',
-                style: TextStyle(
-                  color: palette.cellUsedFg,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '#${p.id}',
-                style: TextStyle(color: palette.cellUsedFg, fontSize: 10),
-              ),
-              if (p.pinned)
-                Icon(Icons.push_pin, size: 10, color: palette.cellUsedFg),
-              if (p.pointsFactor > 1)
-                Icon(Icons.star, size: 10, color: palette.cellUsedFg),
-              if (p.linkedWith != null)
-                Icon(Icons.link, size: 10, color: palette.cellUsedFg),
-            ],
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // The app icon's restrained bevel: light top edge, darker base.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 4,
+              child: ColoredBox(color: Colors.white.withValues(alpha: 0.26)),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 5,
+              child: ColoredBox(color: Colors.black.withValues(alpha: 0.22)),
+            ),
+            Center(child: label),
+          ],
         ),
       ),
     );

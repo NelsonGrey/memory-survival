@@ -157,6 +157,8 @@ void main() {
       await tester.tap(find.text('Not now'));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.text('Play'));
+
       await tester.tap(find.text('Play'));
       await tester.pumpAndSettle();
       expect(find.text('How to play'), findsWidgets);

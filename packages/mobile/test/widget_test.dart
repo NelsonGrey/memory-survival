@@ -19,6 +19,7 @@ void main() {
       progress: FakeGameCenterProgressService(),
       openUrl: (_) async {},
     );
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(MemorySurvivalApp(services: services));
     await tester.pumpAndSettle();
 
@@ -26,10 +27,14 @@ void main() {
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Memory Survival'), findsOneWidget);
+    // The wordmark is an image; its header semantics carry the name.
+    expect(find.bySemanticsLabel('Memory Survival'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Settings'));
 
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Appearance'), findsOneWidget);
+    semantics.dispose();
   });
 }

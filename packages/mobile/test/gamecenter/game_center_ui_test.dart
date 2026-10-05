@@ -67,6 +67,8 @@ void main() {
     expect(find.text('Connect to Game Center?'), findsNothing);
     expect(find.text('Connect Game Center'), findsNothing);
 
+    await tester.ensureVisible(find.text('Settings'));
+
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Game Center'), findsNothing);
@@ -77,6 +79,7 @@ void main() {
     await pumpApp(tester, _services(connection));
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Settings'));
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
