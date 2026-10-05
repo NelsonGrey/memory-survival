@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920">
+  <defs><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#10151c" stop-opacity=".3"/><stop offset=".5" stop-color="#10151c" stop-opacity=".55"/><stop offset="1" stop-color="#10151c" stop-opacity="1"/></linearGradient></defs>
+  <image href="../campaign/key-art-master.png" width="3000" height="1920" x="-1580" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="1080" height="1920" fill="url(#shade)"/>
+  <text x="90" y="150" font-family="Sora,Arial,sans-serif" font-size="54" font-weight="700" fill="#eef2f6" letter-spacing="3">MEMORY <tspan fill="#6fd9b0">SURVIVAL</tspan></text>
+  <text x="90" y="1370" font-family="Sora,Arial,sans-serif" font-size="104" font-weight="700" fill="#eef2f6" letter-spacing="-4">Every gap</text>
+  <text x="90" y="1485" font-family="Sora,Arial,sans-serif" font-size="104" font-weight="700" fill="#eef2f6" letter-spacing="-4">is a risk.</text>
+  <text x="96" y="1565" font-family="Sora,Arial,sans-serif" font-size="36" fill="#a9b4c2">Place. Release. Compact. Survive.</text>
+  <g transform="translate(96 1665)" font-family="Sora,Arial,sans-serif" font-size="28" font-weight="700" letter-spacing="3"><rect width="354" height="72" rx="12" fill="#6fd9b0"/><text x="30" y="47" fill="#10151c">IN DEVELOPMENT</text></g>
+</svg>

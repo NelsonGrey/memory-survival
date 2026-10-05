@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080">
+  <defs><linearGradient id="shade" x2="0" y2="1"><stop stop-color="#10151c" stop-opacity=".12"/><stop offset=".55" stop-color="#10151c" stop-opacity=".45"/><stop offset="1" stop-color="#10151c" stop-opacity=".98"/></linearGradient></defs>
+  <image href="../campaign/key-art-master.png" width="2460" height="1080" x="-1120" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="1080" height="1080" fill="url(#shade)"/>
+  <text x="68" y="106" font-family="Sora,Arial,sans-serif" font-size="42" font-weight="700" fill="#eef2f6" letter-spacing="2">MEMORY <tspan fill="#6fd9b0">SURVIVAL</tspan></text>
+  <text x="68" y="760" font-family="Sora,Arial,sans-serif" font-size="82" font-weight="700" fill="#eef2f6" letter-spacing="-3">Every gap</text>
+  <text x="68" y="850" font-family="Sora,Arial,sans-serif" font-size="82" font-weight="700" fill="#eef2f6" letter-spacing="-3">is a risk.</text>
+  <text x="72" y="908" font-family="Sora,Arial,sans-serif" font-size="26" fill="#a9b4c2">A real-time memory allocation puzzle.</text>
+  <g transform="translate(72 960)" font-family="Sora,Arial,sans-serif" font-size="19" font-weight="700" letter-spacing="2"><rect width="244" height="50" rx="8" fill="#6fd9b0"/><text x="22" y="33" fill="#10151c">IN DEVELOPMENT</text></g>
+</svg>

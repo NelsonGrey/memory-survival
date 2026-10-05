@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Memory Survival mark</title>
+  <desc id="desc">A column of memory cells with a dangerous fragmented gap</desc>
+  <rect width="256" height="256" rx="52" fill="#10151c"/>
+  <g fill="none" stroke-linejoin="round" stroke-width="8">
+    <path d="M57 42h142v172H57z" stroke="#7d8da3"/>
+    <path d="M57 42h142v38H57zM57 88h82v38H57zM147 88h52v38h-52zM57 134h52v38H57zM117 134h82v38h-82zM57 180h142v34H57z" stroke="#2f6aa0" fill="#2f6aa0"/>
+    <path d="M117 134h82v38h-82z" stroke="#6fd9b0" fill="#6fd9b0"/>
+    <path d="M147 88h52v38h-52z" stroke="#ff8a75" fill="#ff8a75"/>
+  </g>
+  <path d="M139 88v38M109 134v38" stroke="#10151c" stroke-width="8"/>
+</svg>

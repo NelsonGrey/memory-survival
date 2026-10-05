@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs><linearGradient id="shade"><stop stop-color="#10151c" stop-opacity=".99"/><stop offset=".58" stop-color="#10151c" stop-opacity=".72"/><stop offset="1" stop-color="#10151c" stop-opacity=".12"/></linearGradient></defs>
+  <image href="../campaign/key-art-master.png" width="1440" height="630" x="0" y="0" preserveAspectRatio="xMidYMid slice"/>
+  <rect width="1200" height="630" fill="url(#shade)"/>
+  <text x="72" y="98" font-family="Sora,Arial,sans-serif" font-size="34" font-weight="700" fill="#eef2f6" letter-spacing="2">MEMORY <tspan fill="#6fd9b0">SURVIVAL</tspan></text>
+  <text x="72" y="335" font-family="Sora, Arial, sans-serif" font-size="74" font-weight="700" fill="#eef2f6" letter-spacing="-3">Every gap is a risk.</text>
+  <text x="76" y="397" font-family="Sora, Arial, sans-serif" font-size="29" fill="#a9b4c2">A real-time memory allocation puzzle.</text>
+  <g transform="translate(76 484)" font-family="Sora, Arial, sans-serif" font-size="19" font-weight="700" letter-spacing="2"><rect width="244" height="50" rx="8" fill="#6fd9b0"/><text x="22" y="33" fill="#10151c">IN DEVELOPMENT</text></g>
+</svg>

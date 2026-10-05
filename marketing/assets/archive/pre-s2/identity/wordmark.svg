@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">Memory Survival</title>
+  <desc id="desc">Memory Survival wordmark with fragmented memory cells</desc>
+  <g transform="translate(20 22)">
+    <rect width="256" height="256" rx="52" fill="#10151c"/>
+    <g fill="none" stroke-linejoin="round" stroke-width="8">
+      <path d="M57 42h142v172H57z" stroke="#7d8da3"/>
+      <path d="M57 42h142v38H57zM57 88h82v38H57zM147 88h52v38h-52zM57 134h52v38H57zM117 134h82v38h-82zM57 180h142v34H57z" stroke="#2f6aa0" fill="#2f6aa0"/>
+      <path d="M117 134h82v38h-82z" stroke="#6fd9b0" fill="#6fd9b0"/>
+      <path d="M147 88h52v38h-52z" stroke="#ff8a75" fill="#ff8a75"/>
+    </g>
+    <path d="M139 88v38M109 134v38" stroke="#10151c" stroke-width="8"/>
+  </g>
+  <g font-family="Sora, Inter, Arial, sans-serif" fill="#eef2f6">
+    <text x="320" y="136" font-size="104" font-weight="700" letter-spacing="-4">MEMORY</text>
+    <text x="320" y="238" font-size="104" font-weight="700" letter-spacing="-4" fill="#6fd9b0">SURVIVAL</text>
+  </g>
+</svg>
