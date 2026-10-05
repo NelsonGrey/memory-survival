@@ -55,6 +55,7 @@ class MemoryEngine {
     processes: processes,
     requestQueue: requests,
     compactionsLeft: rules.compactionCharges,
+    livesLeft: rules.lives,
   );
 
   /// Whether [request] fits at [start], without changing anything.
@@ -152,27 +153,36 @@ class MemoryEngine {
     final aged = [
       for (final r in next.requestQueue) r.withDeadline(r.deadline - 1),
     ];
+    next = next.copyWith(
+      requestQueue: [
+        for (final r in aged)
+          if (r.deadline > 0) r,
+      ],
+    );
     for (final r in aged) {
       if (r.deadline <= 0) {
-        return _fail(next.copyWith(requestQueue: aged), r, expired: true);
+        next = _fault(next, r, expired: true);
+        if (next.status != RunStatus.playing) return next;
       }
     }
-    next = next.copyWith(requestQueue: aged);
 
     for (final a in arrivals) {
-      final queue = [...next.requestQueue, a];
+      if (next.requestQueue.length >= rules.maxQueue) {
+        next = _fault(next, a, expired: false);
+        if (next.status != RunStatus.playing) return next;
+        continue;
+      }
       next = next.copyWith(
-        requestQueue: queue,
+        requestQueue: [...next.requestQueue, a],
         appendEvents: [Arrived(cycle, a.id, a.size)],
       );
-      if (queue.length > rules.maxQueue) {
-        return _fail(next, a, expired: false);
-      }
     }
     return next;
   }
 
-  MemoryState _fail(MemoryState s, Request r, {required bool expired}) {
+  /// Records a fault for [r]: it costs a life and the request is gone. The
+  /// run ends when no lives are left.
+  MemoryState _fault(MemoryState s, Request r, {required bool expired}) {
     final free = s.freeCells;
     final largest = s.largestFreeBlock;
     final FailureKind kind;
@@ -193,9 +203,12 @@ class MemoryEngine {
       freeCells: free,
       largestFreeBlock: largest,
     );
+    final lives = s.livesLeft - 1;
     return s.copyWith(
-      status: RunStatus.failed,
+      status: lives <= 0 ? RunStatus.failed : RunStatus.playing,
       failure: failure,
+      livesLeft: lives,
+      faultCount: s.faultCount + 1,
       appendEvents: [Failed(failure)],
     );
   }

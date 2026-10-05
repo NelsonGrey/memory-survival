@@ -4,8 +4,11 @@ import '../engine/engine.dart';
 import 'explain.dart';
 
 /// Base tick length, and the "Relaxed clock" accessibility multiplier.
-const baseTickDuration = Duration(milliseconds: 1500);
+const baseTickDuration = Duration(milliseconds: 1000);
 const relaxedClockMultiplier = 2;
+
+/// How long a fault explanation stays on screen.
+const faultNoticeTicks = 6;
 
 /// Drives one endless run: owns the engine state, the selected request and
 /// the latest feedback message. Contains no timers; the screen calls [tick]
@@ -25,6 +28,10 @@ class GameController extends ChangeNotifier {
   late MemoryState state;
   int? _selectedId;
   String? message;
+
+  /// What the last fault was and why, shown for [_noticeTicks] ticks.
+  String? faultNotice;
+  int _noticeTicks = 0;
   bool paused = false;
 
   bool get isPlaying => state.status == RunStatus.playing;
@@ -89,10 +96,20 @@ class GameController extends ChangeNotifier {
   /// Advances the simulation one tick, bringing in the seeded arrival.
   void tick() {
     if (!isPlaying || paused) return;
+    final before = state.faultCount;
     state = engine.tick(
       state,
       arrivals: generator.arrivalsFor(state.cycle + 1),
     );
+    if (state.faultCount > before) {
+      final lives = state.livesLeft;
+      faultNotice =
+          '${explainFailure(state.failure!, rules)} '
+          '$lives ${lives == 1 ? 'life' : 'lives'} left.';
+      _noticeTicks = faultNoticeTicks;
+    } else if (_noticeTicks > 0 && --_noticeTicks == 0) {
+      faultNotice = null;
+    }
     notifyListeners();
   }
 

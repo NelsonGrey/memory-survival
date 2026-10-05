@@ -5,7 +5,6 @@ import '../shell/shell.dart';
 
 import '../app/app_services.dart';
 import '../gamecenter/game_center_connection.dart';
-import '../layout/game_layout.dart';
 import '../theme/game_theme.dart';
 
 /// Settings: the gameplay palette (Appearance), Game Center, the ad-removal
@@ -24,11 +23,7 @@ class SettingsScreen extends StatelessWidget {
       body: GameScreenShell(
         adService: services.ads,
         body: ListenableBuilder(
-          listenable: Listenable.merge([
-            services.theme,
-            services.layout,
-            services.relaxedClock,
-          ]),
+          listenable: Listenable.merge([services.theme, services.relaxedClock]),
           builder: (context, _) => ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
@@ -38,19 +33,6 @@ class SettingsScreen extends StatelessWidget {
                   palette: gameThemePalettes[id]!,
                   selected: id == services.theme.value,
                   onTap: () => services.theme.select(id),
-                ),
-              const SizedBox(height: 16),
-              const _SectionHeader('Layout'),
-              for (final id in gameLayoutOrder)
-                ListTile(
-                  onTap: () => services.layout.select(id),
-                  selected: id == services.layout.value,
-                  minTileHeight: 64,
-                  title: Text(gameLayouts[id]!.name),
-                  subtitle: Text(gameLayouts[id]!.description),
-                  trailing: id == services.layout.value
-                      ? const Icon(Icons.check)
-                      : null,
                 ),
               const SizedBox(height: 16),
               if (services.connection.supported) ...[

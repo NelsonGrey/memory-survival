@@ -8,7 +8,8 @@ import '../gamecenter/fake_game_center_progress_service.dart';
 import '../gamecenter/game_center_connection.dart';
 import '../gamecenter/game_center_progress_service.dart';
 import '../gamecenter/games_services_progress_service.dart';
-import '../layout/game_layout.dart';
+import '../settings/best_score.dart';
+import '../settings/how_to_play_setting.dart';
 import '../settings/relaxed_clock_setting.dart';
 import '../theme/theme_controller.dart';
 
@@ -37,12 +38,14 @@ class AppServices {
     GameCenterProgressService? progress,
     GameCenterConnection? connection,
     ThemeController? theme,
-    LayoutController? layout,
     RelaxedClockSetting? relaxedClock,
+    BestScore? bestScore,
+    HowToPlaySetting? howToPlay,
     UrlOpener? openUrl,
   }) : theme = theme ?? ThemeController(),
-       layout = layout ?? LayoutController(),
        relaxedClock = relaxedClock ?? RelaxedClockSetting(),
+       bestScore = bestScore ?? BestScore(),
+       howToPlay = howToPlay ?? HowToPlaySetting(),
        openUrl = openUrl ?? _defaultOpenUrl,
        consent = consent ?? UmpConsentService(),
        entitlement =
@@ -100,11 +103,14 @@ class AppServices {
   /// here so every screen reaches it the same way.
   final ThemeController theme;
 
-  /// The player's gameplay layout.
-  final LayoutController layout;
-
   /// Accessibility: doubles simulation ticks when on.
   final RelaxedClockSetting relaxedClock;
+
+  /// Best endless score on this device, per ruleset version.
+  final BestScore bestScore;
+
+  /// Whether the player has seen the how-to-play screen.
+  final HowToPlaySetting howToPlay;
 
   /// Opens the Privacy/Terms/Support links in Settings.
   final UrlOpener openUrl;
@@ -116,8 +122,9 @@ class AppServices {
     _initialized = true;
 
     await theme.load();
-    await layout.load();
     await relaxedClock.load();
+    await bestScore.load();
+    await howToPlay.load();
     await consent.requestConsent();
     await entitlement.restore();
 

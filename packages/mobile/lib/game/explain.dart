@@ -17,7 +17,8 @@ String explainFailure(Failure f, Ruleset rules) {
       return '$who ran out of time. A gap big enough was free, but it was '
           'not placed before its deadline.';
     case FailureKind.rule:
-      return 'More than ${rules.maxQueue} requests were waiting at once.';
+      return 'The waiting list was full (${rules.maxQueue}), so '
+          '$who was turned away.';
   }
 }
 

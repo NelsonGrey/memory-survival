@@ -4,6 +4,7 @@ import '../app/app_services.dart';
 import '../game/game_screen.dart';
 import '../shell/shell.dart';
 import 'game_center_widgets.dart';
+import 'how_to_play_screen.dart';
 import 'settings_screen.dart';
 
 /// Home screen: starts an endless run or opens Settings. Carries the banner
@@ -29,6 +30,25 @@ class _HomeScreenState extends State<HomeScreen> {
         showGameCenterPrompt(context, services.connection);
       }
     });
+  }
+
+  /// The first Play shows the instructions, then starts the run.
+  void _play() {
+    final nav = Navigator.of(context);
+    MaterialPageRoute<void> game() =>
+        MaterialPageRoute<void>(builder: (_) => GameScreen(services: services));
+    if (services.howToPlay.value) {
+      nav.push(game());
+    } else {
+      nav.push(
+        MaterialPageRoute<void>(
+          builder: (_) => HowToPlayScreen(
+            services: services,
+            onStart: () => nav.pushReplacement(game()),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -62,15 +82,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    FilledButton(
+                    FilledButton(onPressed: _play, child: const Text('Play')),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => GameScreen(services: services),
+                          builder: (_) => HowToPlayScreen(services: services),
                         ),
                       ),
-                      child: const Text('Play'),
+                      child: const Text('How to play'),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     GameCenterBadge(services: services),
                     const SizedBox(height: 16),
                     OutlinedButton(

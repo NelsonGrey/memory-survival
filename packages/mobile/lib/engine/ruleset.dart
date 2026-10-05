@@ -7,12 +7,13 @@ class Ruleset {
     this.cellCount = 16,
     this.requestDeadline = 6,
     this.maxQueue = 4,
+    this.lives = 3,
     this.compactionCharges = 2,
     this.compactionTickCost = 2,
     this.compactionPointCost = 5,
-    this.arrivalPerMille = 350,
-    this.arrivalRampPerMille = 100,
-    this.arrivalMaxPerMille = 800,
+    this.arrivalPerMille = 550,
+    this.arrivalRampPerMille = 200,
+    this.arrivalMaxPerMille = 900,
     this.minSize = 1,
     this.maxSize = 5,
     this.minLifetime = 3,
@@ -22,11 +23,12 @@ class Ruleset {
   }) : assert(cellCount > 0),
        assert(requestDeadline > 0),
        assert(maxQueue > 0),
+       assert(lives > 0),
        assert(minSize > 0 && minSize <= maxSize),
        assert(minLifetime > 0 && minLifetime <= maxLifetime);
 
   /// Bump whenever any rule or default balance value changes.
-  static const currentVersion = 2;
+  static const currentVersion = 3;
 
   final int version;
 
@@ -36,8 +38,12 @@ class Ruleset {
   /// Ticks a request may wait in the queue before it fails.
   final int requestDeadline;
 
-  /// A request that would push the queue past this length ends the run.
+  /// A request arriving to a full queue of this length is refused (a fault).
   final int maxQueue;
+
+  /// Faults a run survives: an expired or refused request costs one, and the
+  /// run ends when none are left.
+  final int lives;
 
   /// Compactions available per run.
   final int compactionCharges;

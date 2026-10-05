@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memory_survival/engine/engine.dart';
 
-const rules = Ruleset(cellCount: 10, requestDeadline: 3, maxQueue: 3);
+const rules = Ruleset(cellCount: 10, requestDeadline: 3, maxQueue: 3, lives: 1);
 const engine = MemoryEngine(rules);
 
 Request req(
@@ -145,6 +145,45 @@ void main() {
       s = engine.tick(s);
       expect(identical(engine.tick(s), s), isTrue);
       expect(engine.place(s, 5, 0).error, PlacementError.notPlaying);
+    });
+  });
+
+  group('lives', () {
+    const threeLives = Ruleset(cellCount: 10, requestDeadline: 3, lives: 3);
+    const eng3 = MemoryEngine(threeLives);
+
+    test('an expired request costs a life and is dropped', () {
+      var s = eng3.initial(requests: [req(5, 2, deadline: 1)]);
+      s = eng3.tick(s);
+      expect(s.status, RunStatus.playing);
+      expect(s.livesLeft, 2);
+      expect(s.faultCount, 1);
+      expect(s.requestQueue, isEmpty);
+      expect(s.failure!.kind, FailureKind.deadline);
+    });
+
+    test('a refused arrival costs a life and is not queued', () {
+      const tight = Ruleset(cellCount: 10, maxQueue: 1, lives: 3);
+      final e = MemoryEngine(tight);
+      var s = e.initial(requests: [req(1, 1)]);
+      s = e.tick(s, arrivals: [req(2, 1)]);
+      expect(s.livesLeft, 2);
+      expect(s.failure!.kind, FailureKind.rule);
+      expect(s.requestQueue.map((r) => r.id), [1]);
+    });
+
+    test('the run ends when the last life is lost', () {
+      var s = eng3.initial(
+        requests: [
+          req(1, 2, deadline: 1),
+          req(2, 2, deadline: 1),
+          req(3, 2, deadline: 1),
+        ],
+      );
+      s = eng3.tick(s);
+      expect(s.status, RunStatus.failed);
+      expect(s.livesLeft, 0);
+      expect(s.faultCount, 3);
     });
   });
 

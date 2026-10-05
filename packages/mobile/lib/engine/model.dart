@@ -205,6 +205,8 @@ class MemoryState {
     this.score = const Score(),
     this.status = RunStatus.playing,
     this.failure,
+    this.livesLeft = 0,
+    this.faultCount = 0,
     List<EngineEvent> eventHistory = const [],
   }) : processes = List.unmodifiable(
          [...processes]..sort((a, b) => a.start.compareTo(b.start)),
@@ -224,7 +226,15 @@ class MemoryState {
   final int compactionsLeft;
   final Score score;
   final RunStatus status;
+
+  /// The most recent fault, fatal or not.
   final Failure? failure;
+
+  /// Faults a run can still absorb; the run ends when this reaches 0.
+  final int livesLeft;
+
+  /// Faults suffered so far this run.
+  final int faultCount;
   final List<EngineEvent> eventHistory;
 
   int get cellCount => rules.cellCount;
@@ -283,6 +293,8 @@ class MemoryState {
     Score? score,
     RunStatus? status,
     Failure? failure,
+    int? livesLeft,
+    int? faultCount,
     List<EngineEvent>? appendEvents,
   }) => MemoryState(
     rules: rules,
@@ -294,6 +306,8 @@ class MemoryState {
     score: score ?? this.score,
     status: status ?? this.status,
     failure: failure ?? this.failure,
+    livesLeft: livesLeft ?? this.livesLeft,
+    faultCount: faultCount ?? this.faultCount,
     eventHistory: appendEvents == null
         ? eventHistory
         : [...eventHistory, ...appendEvents],
