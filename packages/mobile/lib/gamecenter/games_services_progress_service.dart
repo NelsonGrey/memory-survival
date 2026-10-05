@@ -30,12 +30,13 @@ class GamesServicesProgressService implements GameCenterProgressService {
   }
 
   @override
-  Future<void> submitScore(int score) async {
+  Future<void> submitScore(int score, {String? leaderboardId}) async {
+    final id = leaderboardId ?? GameCenterIds.currentEndlessLeaderboard;
     try {
       await Leaderboards.submitScore(
         score: Score(
-          androidLeaderboardID: GameCenterIds.leaderboardEndlessScore,
-          iOSLeaderboardID: GameCenterIds.leaderboardEndlessScore,
+          androidLeaderboardID: id,
+          iOSLeaderboardID: id,
           value: score,
         ),
       );
@@ -45,11 +46,12 @@ class GamesServicesProgressService implements GameCenterProgressService {
   }
 
   @override
-  Future<void> showLeaderboard() async {
+  Future<void> showLeaderboard({String? leaderboardId}) async {
+    final id = leaderboardId ?? GameCenterIds.currentEndlessLeaderboard;
     try {
       await Leaderboards.showLeaderboards(
-        iOSLeaderboardID: GameCenterIds.leaderboardEndlessScore,
-        androidLeaderboardID: GameCenterIds.leaderboardEndlessScore,
+        iOSLeaderboardID: id,
+        androidLeaderboardID: id,
       );
     } catch (_) {
       // Best-effort.

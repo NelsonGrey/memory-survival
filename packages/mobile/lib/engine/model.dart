@@ -1,4 +1,5 @@
 import 'ruleset.dart';
+import 'wave.dart';
 
 /// How a process leaves memory.
 enum ReleasePolicy {
@@ -18,6 +19,10 @@ class Request {
     required this.deadline,
     this.releasePolicy = ReleasePolicy.normal,
     this.pinned = false,
+    this.family = RequestFamily.standard,
+    this.lifetimeMin,
+    this.lifetimeMax,
+    this.linkedWith,
   }) : assert(size > 0),
        assert(lifetime > 0);
 
@@ -33,6 +38,18 @@ class Request {
 
   /// A pinned process cannot be moved by compaction.
   final bool pinned;
+  final RequestFamily family;
+
+  /// For a volatile request, the range the true [lifetime] is hidden in.
+  final int? lifetimeMin;
+  final int? lifetimeMax;
+
+  /// For the second half of a linked pair, the id of the first. Both must
+  /// end up side by side; the first half has none.
+  final int? linkedWith;
+
+  /// Priority requests are worth double.
+  int get pointsFactor => family == RequestFamily.priority ? 2 : 1;
 
   Request withDeadline(int deadline) => Request(
     id: id,
@@ -41,8 +58,16 @@ class Request {
     deadline: deadline,
     releasePolicy: releasePolicy,
     pinned: pinned,
+    family: family,
+    lifetimeMin: lifetimeMin,
+    lifetimeMax: lifetimeMax,
+    linkedWith: linkedWith,
   );
 }
+
+/// What a block of cells is: a real process, a locked cell, or a region
+/// held for a forecast request.
+enum ProcessKind { normal, quarantine, reserved }
 
 /// A placed process: one contiguous cell range.
 class MemoryProcess {
@@ -53,8 +78,14 @@ class MemoryProcess {
     required this.remaining,
     this.releasePolicy = ReleasePolicy.normal,
     this.pinned = false,
+    this.kind = ProcessKind.normal,
+    this.reservedFor,
+    this.assisted = false,
+    this.pointsFactor = 1,
+    this.linkedWith,
   });
 
+  /// Quarantines and reservations get negative synthetic ids.
   final int id;
   final int size;
   final int start;
@@ -63,8 +94,22 @@ class MemoryProcess {
   final int remaining;
   final ReleasePolicy releasePolicy;
   final bool pinned;
+  final ProcessKind kind;
+
+  /// For a reservation, the id of the forecast request it is held for.
+  final int? reservedFor;
+
+  /// Placed with the one-tap suggestion: earns no multiplier or streak.
+  final bool assisted;
+  final int pointsFactor;
+  final int? linkedWith;
 
   int get end => start + size;
+
+  bool get isNormal => kind == ProcessKind.normal;
+
+  /// Compaction cannot move pinned processes, locks or reservations.
+  bool get immovable => pinned || !isNormal;
 
   MemoryProcess copyWith({int? start, int? remaining}) => MemoryProcess(
     id: id,
@@ -73,6 +118,11 @@ class MemoryProcess {
     remaining: remaining ?? this.remaining,
     releasePolicy: releasePolicy,
     pinned: pinned,
+    kind: kind,
+    reservedFor: reservedFor,
+    assisted: assisted,
+    pointsFactor: pointsFactor,
+    linkedWith: linkedWith,
   );
 }
 
@@ -84,7 +134,13 @@ class Gap {
   int get end => start + size;
 }
 
-enum RunStatus { playing, failed }
+enum RunStatus {
+  playing,
+  failed,
+
+  /// Survived to [Ruleset.goalTicks].
+  completed,
+}
 
 /// Why a request failed, in terms of visible state (MAS-TR-003).
 enum FailureKind {
@@ -126,6 +182,11 @@ class Score {
     this.completed = 0,
     this.compactions = 0,
     this.points = 0,
+    this.peakStreak = 0,
+    this.largestRescued = 0,
+    this.wavesCleared = 0,
+    this.fragmentationWarnings = 0,
+    this.rejected = 0,
   });
 
   final int ticksSurvived;
@@ -134,18 +195,39 @@ class Score {
   final int compactions;
   final int points;
 
+  /// Longest run of completed processes without a break.
+  final int peakStreak;
+
+  /// Size of the biggest request placed with at most two ticks to spare.
+  final int largestRescued;
+  final int wavesCleared;
+
+  /// Times fragmentation crossed the warning level.
+  final int fragmentationWarnings;
+  final int rejected;
+
   Score copyWith({
     int? ticksSurvived,
     int? placed,
     int? completed,
     int? compactions,
     int? points,
+    int? peakStreak,
+    int? largestRescued,
+    int? wavesCleared,
+    int? fragmentationWarnings,
+    int? rejected,
   }) => Score(
     ticksSurvived: ticksSurvived ?? this.ticksSurvived,
     placed: placed ?? this.placed,
     completed: completed ?? this.completed,
     compactions: compactions ?? this.compactions,
     points: points ?? this.points,
+    peakStreak: peakStreak ?? this.peakStreak,
+    largestRescued: largestRescued ?? this.largestRescued,
+    wavesCleared: wavesCleared ?? this.wavesCleared,
+    fragmentationWarnings: fragmentationWarnings ?? this.fragmentationWarnings,
+    rejected: rejected ?? this.rejected,
   );
 }
 
@@ -186,6 +268,60 @@ class Compacted extends EngineEvent {
   final int movedCount;
 }
 
+/// A quarantine or reservation timed out and its cells opened up.
+class Unlocked extends EngineEvent {
+  const Unlocked(super.cycle, this.start, this.size);
+  final int start;
+  final int size;
+}
+
+class Quarantined extends EngineEvent {
+  const Quarantined(super.cycle, this.start, this.size);
+  final int start;
+  final int size;
+}
+
+class WaveCleared extends EngineEvent {
+  const WaveCleared(
+    super.cycle,
+    this.wave, {
+    required this.clean,
+    this.bonus = 0,
+  });
+  final int wave;
+
+  /// No fault during the storm.
+  final bool clean;
+  final int bonus;
+}
+
+class MultiplierDropped extends EngineEvent {
+  const MultiplierDropped(super.cycle, this.reason);
+  final String reason;
+}
+
+class Rejected extends EngineEvent {
+  const Rejected(super.cycle, this.requestId);
+  final int requestId;
+}
+
+class CleanedUp extends EngineEvent {
+  const CleanedUp(super.cycle, this.processId, this.lockedCells);
+  final int processId;
+  final int lockedCells;
+}
+
+class OverclockStarted extends EngineEvent {
+  const OverclockStarted(super.cycle);
+}
+
+class Reserved extends EngineEvent {
+  const Reserved(super.cycle, this.start, this.size, this.requestId);
+  final int start;
+  final int size;
+  final int requestId;
+}
+
 class Failed extends EngineEvent {
   Failed(this.failure) : super(failure.cycle);
   final Failure failure;
@@ -207,6 +343,13 @@ class MemoryState {
     this.failure,
     this.livesLeft = 0,
     this.faultCount = 0,
+    this.streak = 0,
+    this.heat = 0,
+    this.overclockLeft = 0,
+    this.overclockReadyCycle = 0,
+    this.lastFaultCycle = -1000,
+    this.lastRejectWave = 0,
+    this.nextSyntheticId = -1,
     List<EngineEvent> eventHistory = const [],
   }) : processes = List.unmodifiable(
          [...processes]..sort((a, b) => a.start.compareTo(b.start)),
@@ -235,11 +378,63 @@ class MemoryState {
 
   /// Faults suffered so far this run.
   final int faultCount;
+
+  /// Processes completed since the clean-run multiplier last broke.
+  final int streak;
+
+  /// Rises with each fault and cools by surviving a wave cleanly; never
+  /// refunds a life.
+  final int heat;
+
+  /// Ticks of overclock left (double score, faster arrivals).
+  final int overclockLeft;
+
+  /// First cycle overclock can be used again.
+  final int overclockReadyCycle;
+  final int lastFaultCycle;
+
+  /// The wave number a request was last rejected in; one per wave.
+  final int lastRejectWave;
+
+  /// Next id for a quarantine or reservation (counts down from -1).
+  final int nextSyntheticId;
   final List<EngineEvent> eventHistory;
+
+  /// Clean-run multiplier, 1..[Ruleset.multiplierMax].
+  int get multiplier {
+    final tier = 1 + streak ~/ rules.multiplierStep;
+    return tier > rules.multiplierMax ? rules.multiplierMax : tier;
+  }
+
+  bool get overclocked => overclockLeft > 0;
+
+  /// What positive points are multiplied by.
+  int get scoreFactor => multiplier * (overclocked ? 2 : 1);
+
+  /// Completions until the next multiplier tier, or null at the cap.
+  int? get completionsToNextTier => multiplier >= rules.multiplierMax
+      ? null
+      : rules.multiplierStep - streak % rules.multiplierStep;
+
+  /// Whether free space is split enough to threaten the multiplier.
+  bool get fragmentationWarning =>
+      freeCells >= rules.fragmentationMinFree &&
+      fragmentation * 1000 >= rules.fragmentationWarnPerMille;
+
+  WaveInfo get wave => waveAt(rules, cycle);
+
+  /// The active reservation, if any.
+  MemoryProcess? get reservation {
+    for (final p in processes) {
+      if (p.kind == ProcessKind.reserved) return p;
+    }
+    return null;
+  }
 
   int get cellCount => rules.cellCount;
 
-  /// Owner process id per cell, or null when free.
+  /// Owner process id per cell, or null when free. Cells held for a
+  /// reservation or locked by quarantine count as owned.
   List<int?> get cells {
     final out = List<int?>.filled(cellCount, null);
     for (final p in processes) {
@@ -295,6 +490,13 @@ class MemoryState {
     Failure? failure,
     int? livesLeft,
     int? faultCount,
+    int? streak,
+    int? heat,
+    int? overclockLeft,
+    int? overclockReadyCycle,
+    int? lastFaultCycle,
+    int? lastRejectWave,
+    int? nextSyntheticId,
     List<EngineEvent>? appendEvents,
   }) => MemoryState(
     rules: rules,
@@ -308,6 +510,13 @@ class MemoryState {
     failure: failure ?? this.failure,
     livesLeft: livesLeft ?? this.livesLeft,
     faultCount: faultCount ?? this.faultCount,
+    streak: streak ?? this.streak,
+    heat: heat ?? this.heat,
+    overclockLeft: overclockLeft ?? this.overclockLeft,
+    overclockReadyCycle: overclockReadyCycle ?? this.overclockReadyCycle,
+    lastFaultCycle: lastFaultCycle ?? this.lastFaultCycle,
+    lastRejectWave: lastRejectWave ?? this.lastRejectWave,
+    nextSyntheticId: nextSyntheticId ?? this.nextSyntheticId,
     eventHistory: appendEvents == null
         ? eventHistory
         : [...eventHistory, ...appendEvents],

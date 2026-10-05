@@ -5,6 +5,7 @@ import '../shell/shell.dart';
 
 import '../app/app_services.dart';
 import '../gamecenter/game_center_connection.dart';
+import '../settings/unlocks.dart';
 import '../theme/game_theme.dart';
 
 /// Settings: the gameplay palette (Appearance), Game Center, the ad-removal
@@ -23,17 +24,18 @@ class SettingsScreen extends StatelessWidget {
       body: GameScreenShell(
         adService: services.ads,
         body: ListenableBuilder(
-          listenable: Listenable.merge([services.theme, services.relaxedClock]),
+          listenable: Listenable.merge([
+            services.theme,
+            services.relaxedClock,
+            services.suggestions,
+            services.personalBests,
+            services.scenarioProgress,
+          ]),
           builder: (context, _) => ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
               const _SectionHeader('Appearance'),
-              for (final id in gameThemeOrder)
-                _PaletteTile(
-                  palette: gameThemePalettes[id]!,
-                  selected: id == services.theme.value,
-                  onTap: () => services.theme.select(id),
-                ),
+              for (final id in gameThemeOrder) _paletteTile(context, id),
               const SizedBox(height: 16),
               if (services.connection.supported) ...[
                 const _SectionHeader('Game Center'),
@@ -53,6 +55,17 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: const Text('Each clock tick lasts twice as long'),
                 value: services.relaxedClock.value,
                 onChanged: services.relaxedClock.set,
+              ),
+              const SizedBox(height: 16),
+              const _SectionHeader('Gameplay assists'),
+              SwitchListTile(
+                title: const Text('Suggested placement'),
+                subtitle: const Text(
+                  'Adds a one-tap button that places a request in the tidiest '
+                  'spot. Those requests earn no clean-run multiplier.',
+                ),
+                value: services.suggestions.value,
+                onChanged: services.suggestions.set,
               ),
               const SizedBox(height: 16),
               const _SectionHeader('Legal'),
@@ -75,6 +88,28 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+extension on SettingsScreen {
+  Widget _paletteTile(BuildContext context, GameThemeId id) {
+    final unlocked = isPaletteUnlocked(
+      id,
+      services.personalBests,
+      services.scenarioProgress,
+    );
+    return _PaletteTile(
+      palette: gameThemePalettes[id]!,
+      selected: id == services.theme.value,
+      requirement: unlocked ? null : paletteUnlocks[id]!.requirement,
+      onTap: unlocked
+          ? () => services.theme.select(id)
+          : () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Locked: ${paletteUnlocks[id]!.requirement}'),
+              ),
+            ),
     );
   }
 }
@@ -300,11 +335,15 @@ class _PaletteTile extends StatelessWidget {
     required this.palette,
     required this.selected,
     required this.onTap,
+    this.requirement,
   });
 
   final GameThemePalette palette;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Set when the palette is still locked: how to earn it.
+  final String? requirement;
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +353,12 @@ class _PaletteTile extends StatelessWidget {
       minTileHeight: 64,
       leading: _Swatch(palette: palette),
       title: Text(palette.name),
-      trailing: selected ? const Icon(Icons.check) : null,
+      subtitle: requirement == null ? null : Text('Locked: $requirement'),
+      trailing: requirement != null
+          ? const Icon(Icons.lock_outline)
+          : selected
+          ? const Icon(Icons.check)
+          : null,
     );
   }
 }

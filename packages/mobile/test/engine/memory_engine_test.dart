@@ -196,7 +196,12 @@ void main() {
       expect(n.processes.map((p) => p.start), [0, 2]);
       expect(n.compactionsLeft, rules.compactionCharges - 1);
       expect(n.cycle, rules.compactionTickCost);
-      expect(n.score.points, -rules.compactionPointCost);
+      // Two surviving ticks at ×1 earn 2 points; the compaction costs 5.
+      expect(
+        n.score.points,
+        rules.survivalPoints * rules.compactionTickCost -
+            rules.compactionPointCost,
+      );
       expect(n.eventHistory.whereType<Moved>().length, 2);
     });
 
@@ -247,7 +252,7 @@ void main() {
       for (var i = 0; i < ticks && s.status == RunStatus.playing; i++) {
         for (final r in List.of(s.requestQueue)) {
           for (final g in s.gaps) {
-            if (g.size >= r.size) {
+            if (g.size >= r.size && eng.validate(s, r, g.start) == null) {
               s = eng.place(s, r.id, g.start).state!;
               break;
             }

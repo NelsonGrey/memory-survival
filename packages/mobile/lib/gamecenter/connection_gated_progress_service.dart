@@ -44,13 +44,17 @@ class ConnectionGatedProgressService implements GameCenterProgressService {
   }
 
   @override
-  Future<void> submitScore(int score) async {
-    if (connection.isConnected) await inner.submitScore(score);
+  Future<void> submitScore(int score, {String? leaderboardId}) async {
+    if (connection.isConnected) {
+      await inner.submitScore(score, leaderboardId: leaderboardId);
+    }
   }
 
   @override
-  Future<void> showLeaderboard() async {
-    if (connection.isConnected) await inner.showLeaderboard();
+  Future<void> showLeaderboard({String? leaderboardId}) async {
+    if (connection.isConnected) {
+      await inner.showLeaderboard(leaderboardId: leaderboardId);
+    }
   }
 
   @override

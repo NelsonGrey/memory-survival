@@ -106,16 +106,15 @@ void main() {
       );
       for (
         var i = 0;
-        i < 5 && find.textContaining('lives').evaluate().isEmpty;
+        i < 8 && find.textContaining('Where should').evaluate().isEmpty;
         i++
       ) {
         await tester.pump(baseTickDuration);
       }
-      expect(find.textContaining('lives'), findsWidgets);
-      final before = find.textContaining('lives').evaluate().length;
-      await tester.tap(find.textContaining('Cells ').first);
+      expect(find.textContaining('Where should'), findsOneWidget);
+      await tester.tap(find.textContaining('· cells').first);
       await tester.pump();
-      expect(find.textContaining('lives').evaluate().length, lessThan(before));
+      expect(find.textContaining('Where should'), findsNothing);
       // Leave the screen so the periodic timer is disposed.
       await tester.pumpWidget(const SizedBox());
     });

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memory_survival/engine/ruleset.dart';
 import 'package:memory_survival/shell/shell.dart';
 import 'package:memory_survival/gamecenter/connection_gated_progress_service.dart';
 import 'package:memory_survival/gamecenter/fake_game_center_progress_service.dart';
@@ -182,6 +183,37 @@ void main() {
       await g.unlockAchievement(GameCenterIds.achievementFirstAllocation);
       expect(inner.submittedScores, [42]);
       expect(inner.unlockedAchievements, hasLength(1));
+    });
+  });
+
+  group('GameCenterIds', () {
+    test('each ruleset version has its own leaderboard', () {
+      expect(
+        GameCenterIds.endlessLeaderboardFor(4),
+        'memory_survival_endless_score_v4',
+      );
+      expect(
+        GameCenterIds.endlessLeaderboardFor(4),
+        isNot(GameCenterIds.endlessLeaderboardFor(5)),
+      );
+      expect(
+        GameCenterIds.currentEndlessLeaderboard,
+        endsWith('_v${Ruleset.currentVersion}'),
+      );
+    });
+
+    test('scores go to the current board unless one is named', () async {
+      final inner = FakeGameCenterProgressService();
+      final g = ConnectionGatedProgressService(
+        inner,
+        GameCenterConnection.connectedFake(),
+      );
+      await g.submitScore(7);
+      await g.submitScore(8, leaderboardId: 'custom');
+      expect(inner.submittedLeaderboards, [
+        GameCenterIds.currentEndlessLeaderboard,
+        'custom',
+      ]);
     });
   });
 }

@@ -6,3 +6,6 @@ export 'generator.dart';
 export 'memory_engine.dart';
 export 'model.dart';
 export 'ruleset.dart';
+export 'wave.dart';
+export 'bots.dart';
+export 'scenario.dart';

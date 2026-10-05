@@ -7,6 +7,9 @@ import 'game_center_progress_service.dart';
 class FakeGameCenterProgressService implements GameCenterProgressService {
   final List<String> unlockedAchievements = [];
   final List<int> submittedScores = [];
+
+  /// The leaderboard each submitted score went to, in the same order.
+  final List<String> submittedLeaderboards = [];
   int showLeaderboardCount = 0;
   int showAchievementsCount = 0;
   final List<String> savedCloudProgress = [];
@@ -20,12 +23,15 @@ class FakeGameCenterProgressService implements GameCenterProgressService {
   }
 
   @override
-  Future<void> submitScore(int score) async {
+  Future<void> submitScore(int score, {String? leaderboardId}) async {
     submittedScores.add(score);
+    submittedLeaderboards.add(
+      leaderboardId ?? GameCenterIds.currentEndlessLeaderboard,
+    );
   }
 
   @override
-  Future<void> showLeaderboard() async {
+  Future<void> showLeaderboard({String? leaderboardId}) async {
     showLeaderboardCount++;
   }
 

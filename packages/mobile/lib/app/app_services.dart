@@ -9,6 +9,10 @@ import '../gamecenter/game_center_connection.dart';
 import '../gamecenter/game_center_progress_service.dart';
 import '../gamecenter/games_services_progress_service.dart';
 import '../settings/best_score.dart';
+import '../settings/daily_challenge.dart';
+import '../settings/personal_bests.dart';
+import '../settings/scenario_progress.dart';
+import '../settings/suggestions_setting.dart';
 import '../settings/how_to_play_setting.dart';
 import '../settings/relaxed_clock_setting.dart';
 import '../theme/theme_controller.dart';
@@ -40,11 +44,19 @@ class AppServices {
     ThemeController? theme,
     RelaxedClockSetting? relaxedClock,
     BestScore? bestScore,
+    PersonalBests? personalBests,
+    DailyChallenge? daily,
+    ScenarioProgress? scenarioProgress,
+    SuggestionsSetting? suggestions,
     HowToPlaySetting? howToPlay,
     UrlOpener? openUrl,
   }) : theme = theme ?? ThemeController(),
        relaxedClock = relaxedClock ?? RelaxedClockSetting(),
        bestScore = bestScore ?? BestScore(),
+       personalBests = personalBests ?? PersonalBests(),
+       daily = daily ?? DailyChallenge(),
+       scenarioProgress = scenarioProgress ?? ScenarioProgress(),
+       suggestions = suggestions ?? SuggestionsSetting(),
        howToPlay = howToPlay ?? HowToPlaySetting(),
        openUrl = openUrl ?? _defaultOpenUrl,
        consent = consent ?? UmpConsentService(),
@@ -109,6 +121,18 @@ class AppServices {
   /// Best endless score on this device, per ruleset version.
   final BestScore bestScore;
 
+  /// Longest streak, largest rescue and most waves, per ruleset version.
+  final PersonalBests personalBests;
+
+  /// Today's shared seed and the best score on it.
+  final DailyChallenge daily;
+
+  /// Objectives met in each authored scenario.
+  final ScenarioProgress scenarioProgress;
+
+  /// The optional one-tap placement suggestion (no multiplier).
+  final SuggestionsSetting suggestions;
+
   /// Whether the player has seen the how-to-play screen.
   final HowToPlaySetting howToPlay;
 
@@ -124,6 +148,10 @@ class AppServices {
     await theme.load();
     await relaxedClock.load();
     await bestScore.load();
+    await personalBests.load();
+    await daily.load();
+    await scenarioProgress.load();
+    await suggestions.load();
     await howToPlay.load();
     await consent.requestConsent();
     await entitlement.restore();

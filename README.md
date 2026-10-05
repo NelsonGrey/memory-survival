@@ -31,12 +31,35 @@ Pre-release, discovery. The app shell is in place and verified (analyze,
 tests, and an iOS simulator build): ads and consent, the one-time ad-removal
 purchase, Game Center sign-in and its first-run prompt, and Settings (palette,
 Game Center, purchases, relaxed clock, legal links). The deterministic
-allocation engine (`lib/engine/`) and a first playable endless run
-(`lib/game/`, tap-only, placeholder balance) are in.
+allocation engine (`lib/engine/`) and the playable game (`lib/game/`,
+tap-only) are in:
 
-**Not built yet:** the 36 authored scenarios and scenario validator, endless
-score persistence and leaderboard submission, tutorial, the original visual
-identity (MAS-BR-009), and gameplay analytics.
+- **Endless survival** in pressure waves (calm, warning, storm, recovery),
+  with one new process family unlocked per wave (burst, resident, priority,
+  volatile, pinned, linked, leak).
+- **Clean-run multiplier** on every point, broken by faults, compaction, a
+  full waiting list, or fragmentation; tidy placements earn a bonus.
+- **Forecast** of the next arrivals, with detail that thins out as waves pass.
+- **Faults add heat** (shorter deadlines, then a locked cell) that a clean wave
+  cools; lives are never refunded.
+- **Placement choices**: valid starts marked on the strip, Start/End of each
+  gap with the resulting biggest free block, and an optional one-tap
+  suggestion that earns no multiplier.
+- **Risk and reward**: overclock, reserve space for a forecast request, turn a
+  request away once per wave, clean up leaks at the cost of locked cells.
+- **Compaction** costs ticks while arrivals continue.
+- **36 authored scenarios** in four chapters, each with survive / tidy / clean
+  objectives, checked solvable by scripted players (`lib/engine/bots.dart`).
+- **Daily run** (shared seed), personal bests (clean streak, biggest rescue,
+  most waves), a leaderboard per ruleset version, and cosmetic palette
+  unlocks earned through mastery.
+
+**Not built yet:** the original visual identity (MAS-BR-009), Android
+Play Games Services, and gameplay analytics.
+
+Balance tooling: `dart run tool/balance.dart` (survival of scripted policies)
+and `dart run tool/pick_scenario_seeds.dart` (re-picks authored scenario
+seeds after a rules change).
 
 ## Repository Structure
 

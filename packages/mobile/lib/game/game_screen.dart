@@ -4,17 +4,32 @@ import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
 import '../engine/engine.dart';
-import '../shell/shell.dart';
+import '../gamecenter/game_center_progress_service.dart';
 import '../screens/how_to_play_screen.dart';
 import '../screens/settings_screen.dart';
+import '../settings/personal_bests.dart';
+import '../shell/shell.dart';
 import '../theme/game_theme.dart';
 import 'explain.dart';
 import 'game_controller.dart';
+import 'game_widgets.dart';
 import 'memory_strip.dart';
 
-/// An endless run. Everything is tap-only: select a request, then tap a cell
-/// or a "gap" button. The banner shows only while paused or on the results
-/// card, never during active placement (MAS-BR-015).
+/// What kind of run this is.
+enum RunMode {
+  /// Endless survival with a random seed; feeds the leaderboard.
+  endless,
+
+  /// Today's shared seed.
+  daily,
+
+  /// An authored scenario with a goal and three objectives.
+  scenario,
+}
+
+/// A run. Everything is tap-only: select a request, then tap a cell or a
+/// "gap" button. The banner shows only while paused or on the results card,
+/// never during active placement (MAS-BR-015).
 class GameScreen extends StatefulWidget {
   const GameScreen({
     super.key,
@@ -22,16 +37,21 @@ class GameScreen extends StatefulWidget {
     this.seed,
     this.rules = const Ruleset(),
     this.autoTick = true,
-  });
+    this.mode = RunMode.endless,
+    this.scenario,
+  }) : assert(mode != RunMode.scenario || scenario != null);
 
   final AppServices services;
 
-  /// Fixed seed for reproducible runs and tests; random when null.
+  /// Fixed seed for reproducible runs and tests; random when null. Daily and
+  /// scenario runs use their own seeds.
   final int? seed;
   final Ruleset rules;
 
   /// Tests turn this off and step the controller by hand.
   final bool autoTick;
+  final RunMode mode;
+  final Scenario? scenario;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -43,8 +63,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _interstitialShown = false;
   bool _newBest = false;
   bool _scoreSubmitted = false;
+  bool _firstPlacementReported = false;
+  bool _firstCompactionReported = false;
+  NewRecords _records = const NewRecords();
+  Set<Objective> _freshObjectives = const {};
 
   AppServices get services => widget.services;
+  Scenario? get _scenario => widget.scenario;
+  Ruleset get _rules => _scenario?.rules ?? widget.rules;
 
   @override
   void initState() {
@@ -54,14 +80,31 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     services.relaxedClock.addListener(_restartTimer);
   }
 
+  int _seedForRun() {
+    switch (widget.mode) {
+      case RunMode.endless:
+        return widget.seed ??
+            DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF;
+      case RunMode.daily:
+        return widget.seed ?? services.daily.seed;
+      case RunMode.scenario:
+        return _scenario!.seed;
+    }
+  }
+
   void _newRun() {
     _game = GameController(
-      rules: widget.rules,
-      seed: widget.seed ?? DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
+      rules: _rules,
+      seed: _seedForRun(),
+      suggestions: services.suggestions.value,
     );
     _interstitialShown = false;
     _newBest = false;
     _scoreSubmitted = false;
+    _firstPlacementReported = false;
+    _firstCompactionReported = false;
+    _records = const NewRecords();
+    _freshObjectives = const {};
     _game.addListener(_onGameChanged);
     services.ads.preloadInterstitial();
     _restartTimer();
@@ -91,12 +134,53 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Records the score once when the run ends.
   void _onGameChanged() {
+    final s = _game.state;
+    if (!_firstPlacementReported && s.score.placed > 0) {
+      _firstPlacementReported = true;
+      services.progress.unlockAchievement(
+        GameCenterIds.achievementFirstAllocation,
+      );
+    }
+    if (!_firstCompactionReported && s.score.compactions > 0) {
+      _firstCompactionReported = true;
+      services.progress.unlockAchievement(
+        GameCenterIds.achievementFirstCompaction,
+      );
+    }
     if (_game.isPlaying || _scoreSubmitted) return;
     _scoreSubmitted = true;
-    services.bestScore.submit(_game.state.score.points).then((isBest) {
-      if (mounted && isBest) setState(() => _newBest = true);
+    _finishRun(s);
+  }
+
+  /// Records the finished run once: best scores, personal records, scenario
+  /// stars and the leaderboard, depending on the mode.
+  Future<void> _finishRun(MemoryState s) async {
+    final records = await services.personalBests.submit(s.score);
+    var newBest = false;
+    var fresh = const <Objective>{};
+    switch (widget.mode) {
+      case RunMode.endless:
+        newBest = await services.bestScore.submit(s.score.points);
+        services.progress.submitScore(s.score.points);
+      case RunMode.daily:
+        newBest = await services.daily.submit(s.score.points);
+      case RunMode.scenario:
+        fresh = await services.scenarioProgress.record(
+          _scenario!.id,
+          _scenario!.objectivesMet(s),
+        );
+        if (services.scenarioProgress.campaignComplete) {
+          services.progress.unlockAchievement(
+            GameCenterIds.achievementCampaignComplete,
+          );
+        }
+    }
+    if (!mounted) return;
+    setState(() {
+      _records = records;
+      _newBest = newBest;
+      _freshObjectives = fresh;
     });
   }
 
@@ -121,10 +205,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     Navigator.of(context).pop();
   }
 
+  void _restart() => setState(() {
+    final old = _game;
+    old.removeListener(_onGameChanged);
+    _newRun();
+    old.dispose();
+  });
+
+  void _playNext() {
+    final next = nextScenario(_scenario!.id);
+    if (next == null) return _leave();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => GameScreen(
+          services: services,
+          mode: RunMode.scenario,
+          scenario: next,
+          autoTick: widget.autoTick,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([_game, services.theme, services.bestScore]),
+      listenable: Listenable.merge([
+        _game,
+        services.theme,
+        services.bestScore,
+        services.daily,
+      ]),
       builder: (context, _) {
         final p = services.theme.palette;
         final over = !_game.isPlaying;
@@ -164,7 +275,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _header(p, s),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          WaveBanner(state: s, palette: p),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,6 +287,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     state: s,
                     palette: p,
                     onCellTap: _game.placeAt,
+                    validStarts: _game.validStarts,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -184,9 +297,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _notice(p, s),
+                        _forecast(p, s),
                         _queue(p, s),
                         const SizedBox(height: 12),
-                        ..._gapPicker(p),
+                        ..._placementPicker(p, s),
+                        ..._leakCleanup(p, s),
                       ],
                     ),
                   ),
@@ -195,59 +310,148 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ),
           ),
           const SizedBox(height: 12),
-          _compactButton(s),
+          _actions(p, s),
         ],
       ),
     );
   }
 
+  String get _modeLabel {
+    switch (widget.mode) {
+      case RunMode.endless:
+        return '';
+      case RunMode.daily:
+        return 'Daily ${services.daily.dayKey}';
+      case RunMode.scenario:
+        return '${_scenario!.id.toUpperCase()} · ${_scenario!.title}';
+    }
+  }
+
   Widget _header(GameThemePalette p, MemoryState s) {
-    final best = services.bestScore.value;
-    return Row(
+    final int best;
+    switch (widget.mode) {
+      case RunMode.endless:
+        best = services.bestScore.value;
+      case RunMode.daily:
+        best = services.daily.todaysBest ?? 0;
+      case RunMode.scenario:
+        best = 0;
+    }
+    final goal = _rules.goalTicks;
+    final streak = s.completionsToNextTier;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _stat(p, 'Score', '${s.score.points}'),
-        const SizedBox(width: 14),
-        _stat(p, 'Best', '${best > s.score.points ? best : s.score.points}'),
-        const SizedBox(width: 14),
-        _stat(p, 'Time', '${s.cycle}'),
-        const SizedBox(width: 14),
-        Semantics(
-          label: '${s.livesLeft} lives left',
-          excludeSemantics: true,
-          child: Row(
-            children: [
-              Icon(Icons.favorite, size: 20, color: p.danger),
-              const SizedBox(width: 4),
-              Text(
-                '${s.livesLeft}',
-                style: TextStyle(
-                  color: p.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+        Row(
+          children: [
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  children: [
+                    _stat(p, 'Score', '${s.score.points}'),
+                    const SizedBox(width: 14),
+                    if (widget.mode != RunMode.scenario) ...[
+                      _stat(
+                        p,
+                        'Best',
+                        '${best > s.score.points ? best : s.score.points}',
+                      ),
+                      const SizedBox(width: 14),
+                    ],
+                    _stat(
+                      p,
+                      goal > 0 ? 'Time / goal' : 'Time',
+                      goal > 0 ? '${s.cycle}/$goal' : '${s.cycle}',
+                    ),
+                    const SizedBox(width: 14),
+                    Semantics(
+                      label: '${s.livesLeft} lives left',
+                      excludeSemantics: true,
+                      child: Row(
+                        children: [
+                          Icon(Icons.favorite, size: 20, color: p.danger),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${s.livesLeft}',
+                            style: TextStyle(
+                              color: p.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            _iconButton(p, 'How to play', Icons.help_outline, _openHowTo),
+            _iconButton(p, 'Settings', Icons.settings_outlined, _openSettings),
+            _iconButton(
+              p,
+              'Pause',
+              Icons.pause_circle_outline,
+              () => _game.setPaused(true),
+            ),
+          ],
         ),
-        const Spacer(),
-        IconButton(
-          tooltip: 'How to play',
-          onPressed: _openHowTo,
-          icon: Icon(Icons.help_outline, color: p.textPrimary),
-        ),
-        IconButton(
-          tooltip: 'Settings',
-          onPressed: _openSettings,
-          icon: Icon(Icons.settings_outlined, color: p.textPrimary),
-        ),
-        IconButton(
-          tooltip: 'Pause',
-          onPressed: () => _game.setPaused(true),
-          icon: Icon(Icons.pause_circle_outline, color: p.textPrimary),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            StatusPill(
+              palette: p,
+              icon: Icons.local_fire_department_outlined,
+              good: s.multiplier > 1,
+              text: s.multiplier >= _rules.multiplierMax
+                  ? 'Clean run ×${s.scoreFactor} · max'
+                  : 'Clean run ×${s.scoreFactor} · next in $streak',
+              semantics:
+                  'Clean run multiplier ${s.scoreFactor}. '
+                  '${streak == null ? 'At maximum.' : '$streak more completed processes to the next level.'}',
+            ),
+            if (s.heat > 0)
+              StatusPill(
+                palette: p,
+                icon: Icons.thermostat,
+                alert: true,
+                text: 'Heat ${s.heat}',
+                semantics: explainHeat(s.heat, _rules),
+              ),
+            if (s.overclocked)
+              StatusPill(
+                palette: p,
+                icon: Icons.speed,
+                good: true,
+                text: 'Overclock ${s.overclockLeft}',
+              ),
+            if (_modeLabel.isNotEmpty)
+              StatusPill(
+                palette: p,
+                icon: Icons.flag_outlined,
+                text: _modeLabel,
+              ),
+          ],
         ),
       ],
     );
   }
+
+  Widget _iconButton(
+    GameThemePalette p,
+    String tooltip,
+    IconData icon,
+    VoidCallback onPressed,
+  ) => IconButton(
+    tooltip: tooltip,
+    onPressed: onPressed,
+    visualDensity: VisualDensity.compact,
+    icon: Icon(icon, color: p.textPrimary),
+  );
 
   /// What happened last (a fault), or what to do next.
   Widget _notice(GameThemePalette p, MemoryState s) {
@@ -260,32 +464,79 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     } else if (_game.faultNotice != null) {
       text = _game.faultNotice!;
       bad = true;
+    } else if (_game.toast != null) {
+      text = _game.toast!;
+      bad = false;
     } else if (sel == null) {
       text = 'Waiting for a request…';
       bad = false;
     } else {
       text =
-          'Tap a cell to place #${sel.id} (${sel.size} cells), '
-          'or pick a gap below.';
+          'Tap a ▸ cell to place #${sel.id} (${sel.size} cells), '
+          'or pick an option below.';
       bad = false;
     }
+    final good = !bad && _game.toast != null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         text,
-        style: TextStyle(color: bad ? p.danger : p.textMuted, fontSize: 12),
+        style: TextStyle(
+          color: bad
+              ? p.danger
+              : good
+              ? p.ok
+              : p.textMuted,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _forecast(GameThemePalette p, MemoryState s) {
+    final items = _game.forecast;
+    if (items.isEmpty) return const SizedBox.shrink();
+    final canReserve =
+        s.reservation == null && _game.reserving == null && _game.isPlaying;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Coming up', style: TextStyle(color: p.textMuted, fontSize: 12)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in items)
+                ForecastChip(
+                  item: item,
+                  palette: p,
+                  onReserve: canReserve && item.reservable
+                      ? () => _game.beginReserve(item)
+                      : null,
+                ),
+            ],
+          ),
+          if (_game.reserving != null)
+            TextButton(
+              onPressed: _game.cancelReserve,
+              child: const Text('Cancel reserve'),
+            ),
+        ],
       ),
     );
   }
 
   Widget _queue(GameThemePalette p, MemoryState s) {
     final sel = _game.selected;
-    final full = s.requestQueue.length >= widget.rules.maxQueue;
+    final full = s.requestQueue.length >= _rules.maxQueue;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Waiting ${s.requestQueue.length} of ${widget.rules.maxQueue}'
+          'Waiting ${s.requestQueue.length} of ${_rules.maxQueue}'
           '${full ? ' · full: the next one is turned away' : ''}',
           style: TextStyle(
             color: full ? p.danger : p.textMuted,
@@ -306,15 +557,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
   }
 
-  List<Widget> _gapPicker(GameThemePalette p) {
-    if (_game.selected == null) return const [];
+  List<Widget> _placementPicker(GameThemePalette p, MemoryState s) {
+    final sel = _game.selected;
+    if (sel == null) return const [];
+    final options = _game.placementOptions;
+    final suggested = _game.suggestedStart;
+    final rejectUsed = _rules.hasWaves && s.lastRejectWave == s.wave.number;
     return [
       Text(
-        'Place in a gap',
+        'Where should #${sel.id} go?',
         style: TextStyle(color: p.textMuted, fontSize: 12),
       ),
       const SizedBox(height: 6),
-      if (_game.fittingGaps.isEmpty)
+      if (options.isEmpty)
         Text(
           'No gap is big enough. Wait for space to free up, or compact.',
           style: TextStyle(color: p.danger, fontSize: 13),
@@ -324,25 +579,112 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final g in _game.fittingGaps)
-              FilledButton(
-                onPressed: () => _game.placeAt(g.start),
-                child: Text('Cells ${g.start}–${g.end - 1}'),
+            for (final o in options)
+              Semantics(
+                button: true,
+                label:
+                    '${o.label} at cell ${o.start}, leaves ${o.largestFreeAfter} '
+                    'free in a row',
+                excludeSemantics: true,
+                child: FilledButton(
+                  onPressed: () => _game.placeAt(o.start),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${o.label} · cells ${o.start}–${o.start + sel.size - 1}',
+                      ),
+                      Text(
+                        'biggest gap after: ${o.largestFreeAfter}',
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
               ),
           ],
+        ),
+      if (suggested != null) ...[
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: _game.placeSuggested,
+          icon: const Icon(Icons.auto_fix_high, size: 18),
+          label: Text('Suggested: cell $suggested (no multiplier)'),
+        ),
+      ],
+      const SizedBox(height: 4),
+      TextButton(
+        onPressed: rejectUsed ? null : () => _game.reject(sel.id),
+        child: Text(
+          rejectUsed
+              ? 'Turn away: used this wave'
+              : 'Turn away #${sel.id} (breaks your clean run)',
+        ),
+      ),
+    ];
+  }
+
+  /// Leaking processes can be ended early, at a cost.
+  List<Widget> _leakCleanup(GameThemePalette p, MemoryState s) {
+    final leaks = [
+      for (final proc in s.processes)
+        if (proc.isNormal && proc.releasePolicy == ReleasePolicy.leak) proc,
+    ];
+    if (leaks.isEmpty) return const [];
+    return [
+      const SizedBox(height: 8),
+      for (final leak in leaks)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: OutlinedButton.icon(
+            onPressed: () => _game.cleanup(leak.id),
+            icon: const Icon(Icons.cleaning_services_outlined, size: 18),
+            label: Text(
+              'Clean up leak #${leak.id}: locks ${(leak.size + 1) ~/ 2} '
+              'cells for ${_rules.cleanupLockTicks} ticks, '
+              '−${_rules.cleanupPointCost} pts',
+            ),
+          ),
         ),
     ];
   }
 
-  Widget _compactButton(MemoryState s) => OutlinedButton.icon(
-    onPressed: s.compactionsLeft > 0 ? _game.compact : null,
-    icon: const Icon(Icons.compress),
-    label: Text(
-      'Compact (${s.compactionsLeft} left) · '
-      'costs ${widget.rules.compactionTickCost} ticks, '
-      '${widget.rules.compactionPointCost} pts',
-    ),
-  );
+  Widget _actions(GameThemePalette p, MemoryState s) {
+    final ready = s.cycle >= s.overclockReadyCycle && !s.overclocked;
+    final wait = s.overclockReadyCycle - s.cycle;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: s.compactionsLeft > 0 ? _game.compact : null,
+            icon: const Icon(Icons.compress),
+            label: Text(
+              'Compact (${s.compactionsLeft}) · '
+              '${_rules.compactionTickCost} ticks, '
+              'traffic continues, '
+              '−${_rules.compactionPointCost} pts',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(
+          onPressed: ready ? _game.overclock : null,
+          icon: const Icon(Icons.speed),
+          label: Text(
+            s.overclocked
+                ? 'On'
+                : ready
+                ? 'Overclock'
+                : 'Ready in $wait',
+            style: const TextStyle(fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _stat(GameThemePalette p, String label, String value) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,12 +705,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   /// and the number so urgency never depends on colour.
   Widget _requestChip(GameThemePalette p, Request r, {required bool selected}) {
     final urgent = r.deadline <= 2;
+    final tag = familyTag(r);
     return Semantics(
       button: true,
       selected: selected,
       label:
-          'Request ${r.id}, ${r.size} cells, lives ${r.lifetime} ticks, '
-          '${r.deadline} ticks left to place',
+          'Request ${r.id}, ${r.size} cells, ${lifetimeText(r)} ticks, '
+          '${r.deadline} ticks left to place'
+          '${tag == null ? '' : ', $tag'}',
       excludeSemantics: true,
       child: GestureDetector(
         onTap: () => _game.select(r.id),
@@ -396,19 +740,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 ),
               ),
               Text(
-                'lives ${r.lifetime}'
-                '${r.releasePolicy == ReleasePolicy.leak ? ' · leaks' : ''}'
-                '${r.pinned ? ' · pinned' : ''}',
+                lifetimeText(r),
                 style: TextStyle(color: p.textMuted, fontSize: 11),
               ),
+              if (tag != null)
+                Text(
+                  tag,
+                  style: TextStyle(
+                    color: p.textPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               const SizedBox(height: 4),
               ClipRRect(
                 borderRadius: BorderRadius.circular(3),
                 child: LinearProgressIndicator(
-                  value: (r.deadline / widget.rules.requestDeadline).clamp(
-                    0.0,
-                    1.0,
-                  ),
+                  value: (r.deadline / _rules.requestDeadline).clamp(0.0, 1.0),
                   minHeight: 5,
                   color: urgent ? p.danger : p.ok,
                   backgroundColor: p.cellFreeBorder.withValues(alpha: 0.35),
@@ -474,24 +822,33 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   Widget _resultsCard(GameThemePalette p) {
     final s = _game.state;
+    final scenario = _scenario;
+    final won = _game.isCompleted;
+    final title = scenario != null
+        ? (won ? 'Scenario complete' : 'Scenario failed')
+        : widget.mode == RunMode.daily
+        ? 'Daily run over'
+        : 'Run over';
+    TextStyle small() => TextStyle(color: p.textMuted, fontSize: 13);
     return _overlay(
       p,
       children: [
         Text(
-          'Run over',
+          title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: p.danger,
+            color: won ? p.ok : p.danger,
             fontSize: 24,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 12),
-        Text(
-          'The last fault: ${explainFailure(s.failure!, widget.rules)}',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: p.textPrimary, fontSize: 15),
-        ),
+        if (!won && s.failure != null)
+          Text(
+            'The last fault: ${explainFailure(s.failure!, _rules)}',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: p.textPrimary, fontSize: 15),
+          ),
         const SizedBox(height: 16),
         Text(
           _newBest ? 'New best: ${s.score.points}' : 'Score ${s.score.points}',
@@ -504,23 +861,85 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ),
         const SizedBox(height: 4),
         Text(
-          'Best ${services.bestScore.value} · survived ${s.score.ticksSurvived} '
-          'ticks · ${s.score.completed} processes finished',
+          'Survived ${s.score.ticksSurvived} ticks · '
+          '${s.score.completed} processes finished · '
+          '${s.score.wavesCleared} waves cleared',
           textAlign: TextAlign.center,
-          style: TextStyle(color: p.textMuted, fontSize: 13),
+          style: small(),
         ),
+        const SizedBox(height: 4),
+        Text(
+          'Longest clean run ${s.score.peakStreak}'
+          '${s.score.largestRescued > 0 ? ' · biggest rescue ${s.score.largestRescued} cells' : ''}',
+          textAlign: TextAlign.center,
+          style: small(),
+        ),
+        if (_records.any) ...[
+          const SizedBox(height: 8),
+          Text(
+            [
+              if (_records.streak) 'New best clean run!',
+              if (_records.rescued) 'New biggest rescue!',
+              if (_records.waves) 'Most waves cleared yet!',
+            ].join('  '),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: p.ok,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+        if (scenario != null) ...[
+          const SizedBox(height: 16),
+          for (final o in Objective.values)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Semantics(
+                label:
+                    '${o.title}: ${scenario.objectivesMet(s).contains(o) ? 'met' : 'not met'}',
+                excludeSemantics: true,
+                child: Row(
+                  children: [
+                    Icon(
+                      scenario.objectivesMet(s).contains(o)
+                          ? Icons.star
+                          : Icons.star_border,
+                      color: scenario.objectivesMet(s).contains(o)
+                          ? p.ok
+                          : p.textMuted,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${o.title}: ${o.description}'
+                        '${_freshObjectives.contains(o) ? '  (new!)' : ''}',
+                        style: TextStyle(color: p.textPrimary, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
         const SizedBox(height: 24),
-        FilledButton(
-          onPressed: () => setState(() {
-            final old = _game;
-            old.removeListener(_onGameChanged);
-            _newRun();
-            old.dispose();
-          }),
-          child: const Text('Play again'),
-        ),
+        if (scenario != null && won && nextScenario(scenario.id) != null) ...[
+          FilledButton(
+            onPressed: _playNext,
+            child: const Text('Next scenario'),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(onPressed: _restart, child: const Text('Replay')),
+        ] else
+          FilledButton(
+            onPressed: _restart,
+            child: Text(scenario != null ? 'Try again' : 'Play again'),
+          ),
         const SizedBox(height: 12),
-        OutlinedButton(onPressed: _leave, child: const Text('Home')),
+        OutlinedButton(
+          onPressed: _leave,
+          child: Text(scenario != null ? 'Scenarios' : 'Home'),
+        ),
       ],
     );
   }

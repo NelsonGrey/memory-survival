@@ -5,6 +5,7 @@ import '../game/game_screen.dart';
 import '../shell/shell.dart';
 import 'game_center_widgets.dart';
 import 'how_to_play_screen.dart';
+import 'scenario_select_screen.dart';
 import 'settings_screen.dart';
 
 /// Home screen: starts an endless run or opens Settings. Carries the banner
@@ -33,10 +34,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// The first Play shows the instructions, then starts the run.
-  void _play() {
+  void _play({RunMode mode = RunMode.endless}) {
     final nav = Navigator.of(context);
-    MaterialPageRoute<void> game() =>
-        MaterialPageRoute<void>(builder: (_) => GameScreen(services: services));
+    MaterialPageRoute<void> game() => MaterialPageRoute<void>(
+      builder: (_) => GameScreen(services: services, mode: mode),
+    );
     if (services.howToPlay.value) {
       nav.push(game());
     } else {
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: services.theme,
+      listenable: Listenable.merge([services.theme, services.daily]),
       builder: (context, _) {
         final p = services.theme.palette;
         return Scaffold(
@@ -63,47 +65,68 @@ class _HomeScreenState extends State<HomeScreen> {
             adService: services.ads,
             body: SafeArea(
               top: false,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        'Memory Survival',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: p.textPrimary,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          'Memory Survival',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: p.textPrimary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    FilledButton(onPressed: _play, child: const Text('Play')),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => HowToPlayScreen(services: services),
+                      const SizedBox(height: 32),
+                      FilledButton(onPressed: _play, child: const Text('Play')),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => _play(mode: RunMode.daily),
+                        child: Text(
+                          services.daily.todaysBest == null
+                              ? 'Daily run'
+                              : 'Daily run · best ${services.daily.todaysBest}',
                         ),
                       ),
-                      child: const Text('How to play'),
-                    ),
-                    const SizedBox(height: 12),
-                    GameCenterBadge(services: services),
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => SettingsScreen(services: services),
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                ScenarioSelectScreen(services: services),
+                          ),
                         ),
+                        child: const Text('Scenarios'),
                       ),
-                      child: const Text('Settings'),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => HowToPlayScreen(services: services),
+                          ),
+                        ),
+                        child: const Text('How to play'),
+                      ),
+                      const SizedBox(height: 12),
+                      GameCenterBadge(services: services),
+                      const SizedBox(height: 16),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => SettingsScreen(services: services),
+                          ),
+                        ),
+                        child: const Text('Settings'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -20,13 +20,15 @@ class HowToPlayScreen extends StatelessWidget {
       Icons.inbox_outlined,
       'Requests arrive',
       'Each waiting request needs a number of cells in a row, and lives for '
-          'a number of ticks once placed. The ⏱ bar is how long it will wait.',
+          'a number of ticks once placed. The ⏱ bar is how long it will wait. '
+          '"Coming up" shows what arrives next.',
     ),
     (
       Icons.touch_app_outlined,
       'Place them',
-      'Tap a request, then tap a cell or a gap button. It fills that many '
-          'cells starting there. They must all be free.',
+      'Tap a request, then tap a ▸ cell or choose Start or End of a gap. '
+          'Where you put it decides what space is left: each option shows the '
+          'biggest gap you would keep.',
     ),
     (
       Icons.timelapse,
@@ -35,25 +37,49 @@ class HowToPlayScreen extends StatelessWidget {
           'and its cells open up again.',
     ),
     (
+      Icons.local_fire_department_outlined,
+      'Keep your run clean',
+      'Finishing processes builds a multiplier on every point you score. '
+          'It drops when you fault, compact, fill the waiting list or let '
+          'free memory splinter. Tidy placements that do not split a gap earn '
+          'a bonus.',
+    ),
+    (
+      Icons.waves,
+      'Waves of pressure',
+      'Traffic builds to a storm every so often, with a warning first. Clear '
+          'one without a fault for a payout and to cool the system. Each wave '
+          'brings a new kind of process.',
+    ),
+    (
       Icons.favorite_border,
-      'Protect your lives',
+      'Faults add heat',
       'If a request runs out of time, or the waiting list is full, you lose '
-          'a life. Lose all 3 and the run is over. Your score is your '
-          'reward: cells placed and processes finished.',
+          'a life and the system heats up: new requests wait less, and then a '
+          'cell is locked for a while. Lose all 3 lives and the run is over. '
+          'A clean wave cools it, but lives never come back.',
     ),
     (
       Icons.grid_view,
       'Free space is not enough',
       'Four free cells split into pieces cannot hold a request that needs '
-          'four in a row. Plan where short and long processes go so gaps '
-          'stay useful.',
+          'four in a row. Put short-lived processes together and long-lived '
+          'ones together so gaps stay useful.',
     ),
     (
       Icons.compress,
       'Compact in an emergency',
-      'Compact slides everything down to close the gaps. It takes time while '
-          'requests keep waiting, costs points, and you only get a few. '
-          'Pinned blocks (pin icon) will not move. Leaks (∞) never end.',
+      'Compact slides everything down to close the gaps. It takes ticks '
+          'during which requests keep arriving, costs points and your '
+          'multiplier, and you only get a few. Pinned blocks (pin icon) will '
+          'not move. Leaks (∞) never end unless you clean them up.',
+    ),
+    (
+      Icons.speed,
+      'Take a risk',
+      'Overclock for double score but faster arrivals. Reserve space for a '
+          'request you can see coming. Turn away one request per wave if you '
+          'must, at the cost of your multiplier.',
     ),
   ];
 

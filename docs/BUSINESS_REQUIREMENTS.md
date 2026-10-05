@@ -82,7 +82,7 @@ The MVP must include:
 - Optional platform sign-in (Game Center on iOS; Play Games Services on Android, once testing resumes), offered on first launch and from Settings. The whole game is playable without it, and offline either way. There is no custom backend — the platform's own identity, saved-game, achievement, and leaderboard services hold the account state.
 - A per-platform leaderboard for endless survival score, backed by Game Center on iOS and Play Games Services on Android. Leaderboards are siloed per platform, not unified across them.
 
-Virtual memory, multiple allocation algorithms, garbage-collection tracing, and daily challenges are post-MVP candidates.
+Virtual memory, multiple allocation algorithms, and garbage-collection tracing are post-MVP candidates. A daily seeded run, personal bests and mastery-earned cosmetic palettes shipped early; none of them change gameplay values, so scores stay comparable.
 
 ## 7. Business requirements
 
