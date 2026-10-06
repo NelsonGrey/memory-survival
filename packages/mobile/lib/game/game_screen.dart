@@ -345,62 +345,81 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
     final goal = _rules.goalTicks;
     final streak = s.completionsToNextTier;
+    final score = s.score.points;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
+            const BrandMark(size: 28),
+            const SizedBox(width: 8),
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  children: [
-                    _stat(p, 'Score', '${s.score.points}'),
-                    const SizedBox(width: 14),
-                    if (widget.mode != RunMode.scenario) ...[
-                      _stat(
-                        p,
-                        'Best',
-                        '${best > s.score.points ? best : s.score.points}',
-                      ),
-                      const SizedBox(width: 14),
-                    ],
-                    _stat(
-                      p,
-                      goal > 0 ? 'Time / goal' : 'Time',
-                      goal > 0 ? '${s.cycle}/$goal' : '${s.cycle}',
-                    ),
-                    const SizedBox(width: 14),
-                    Semantics(
-                      label: '${s.livesLeft} lives left',
-                      excludeSemantics: true,
-                      child: Row(
-                        children: [
-                          Icon(Icons.favorite, size: 20, color: p.danger),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${s.livesLeft}',
-                            style: TextStyle(
-                              color: p.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              child: Semantics(
+                header: true,
+                child: Text(
+                  'Memory Survival',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: p.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
+            const SizedBox(width: 4),
             _iconButton(p, 'How to play', Icons.help_outline, _openHowTo),
-            _iconButton(p, 'Settings', Icons.settings_outlined, _openSettings),
             _iconButton(
               p,
               'Pause',
               Icons.pause_circle_outline,
               () => _game.setPaused(true),
+            ),
+            _iconButton(p, 'Settings', Icons.settings_outlined, _openSettings),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: StatTile(
+                palette: p,
+                icon: Icons.emoji_events_outlined,
+                label: 'Score',
+                value: '$score',
+              ),
+            ),
+            if (widget.mode != RunMode.scenario) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: StatTile(
+                  palette: p,
+                  icon: Icons.star_outline,
+                  label: 'Best',
+                  value: '${best > score ? best : score}',
+                ),
+              ),
+            ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: StatTile(
+                palette: p,
+                icon: Icons.timer_outlined,
+                label: goal > 0 ? 'Time / goal' : 'Time',
+                value: goal > 0 ? '${s.cycle}/$goal' : '${s.cycle}',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: StatTile(
+                palette: p,
+                icon: Icons.favorite,
+                iconColor: p.danger,
+                label: 'Lives',
+                value: '${s.livesLeft}',
+                semantics: '${s.livesLeft} lives left',
+              ),
             ),
           ],
         ),
@@ -691,21 +710,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       ],
     );
   }
-
-  Widget _stat(GameThemePalette p, String label, String value) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        value,
-        style: TextStyle(
-          color: p.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      Text(label, style: TextStyle(color: p.textMuted, fontSize: 10)),
-    ],
-  );
 
   /// A waiting request. The bar drains as its deadline nears, with a "!"
   /// and the number so urgency never depends on colour.

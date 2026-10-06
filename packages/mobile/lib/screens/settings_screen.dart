@@ -7,6 +7,7 @@ import '../app/app_services.dart';
 import '../gamecenter/game_center_connection.dart';
 import '../settings/unlocks.dart';
 import '../theme/game_theme.dart';
+import 'ad_top_scaffold.dart';
 
 /// Settings: the gameplay palette (Appearance), Game Center, the ad-removal
 /// purchase (Purchases), and the relaxed clock (Accessibility). A
@@ -19,73 +20,70 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: GameScreenShell(
-        adService: services.ads,
-        body: ListenableBuilder(
-          listenable: Listenable.merge([
-            services.theme,
-            services.relaxedClock,
-            services.suggestions,
-            services.personalBests,
-            services.scenarioProgress,
-          ]),
-          builder: (context, _) => ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            children: [
-              const _SectionHeader('Appearance'),
-              for (final id in gameThemeOrder) _paletteTile(context, id),
-              const SizedBox(height: 16),
-              if (services.connection.supported) ...[
-                const _SectionHeader('Game Center'),
-                ListenableBuilder(
-                  listenable: services.connection,
-                  builder: (context, _) =>
-                      _GameCenterSection(services: services),
-                ),
-              ],
-              const SizedBox(height: 16),
-              const _SectionHeader('Purchases'),
-              _PurchaseSection(entitlement: services.entitlement),
-              const SizedBox(height: 16),
-              const _SectionHeader('Accessibility'),
-              SwitchListTile(
-                title: const Text('Relaxed clock'),
-                subtitle: const Text('Each clock tick lasts twice as long'),
-                value: services.relaxedClock.value,
-                onChanged: services.relaxedClock.set,
-              ),
-              const SizedBox(height: 16),
-              const _SectionHeader('Gameplay assists'),
-              SwitchListTile(
-                title: const Text('Suggested placement'),
-                subtitle: const Text(
-                  'Adds a one-tap button that places a request in the tidiest '
-                  'spot. Those requests earn no clean-run multiplier.',
-                ),
-                value: services.suggestions.value,
-                onChanged: services.suggestions.set,
-              ),
-              const SizedBox(height: 16),
-              const _SectionHeader('Legal'),
-              _LegalLink(
-                label: 'Privacy Policy',
-                url: legalUrls.privacy,
-                openUrl: services.openUrl,
-              ),
-              _LegalLink(
-                label: 'Terms of Use',
-                url: legalUrls.terms,
-                openUrl: services.openUrl,
-              ),
-              _LegalLink(
-                label: 'Support',
-                url: legalUrls.support,
-                openUrl: services.openUrl,
+    return AdTopScaffold(
+      adService: services.ads,
+      title: 'Settings',
+      body: ListenableBuilder(
+        listenable: Listenable.merge([
+          services.theme,
+          services.relaxedClock,
+          services.suggestions,
+          services.personalBests,
+          services.scenarioProgress,
+        ]),
+        builder: (context, _) => ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: [
+            const _SectionHeader('Appearance'),
+            for (final id in gameThemeOrder) _paletteTile(context, id),
+            const SizedBox(height: 16),
+            if (services.connection.supported) ...[
+              const _SectionHeader('Game Center'),
+              ListenableBuilder(
+                listenable: services.connection,
+                builder: (context, _) => _GameCenterSection(services: services),
               ),
             ],
-          ),
+            const SizedBox(height: 16),
+            const _SectionHeader('Purchases'),
+            _PurchaseSection(entitlement: services.entitlement),
+            const SizedBox(height: 16),
+            const _SectionHeader('Accessibility'),
+            SwitchListTile(
+              title: const Text('Relaxed clock'),
+              subtitle: const Text('Each clock tick lasts twice as long'),
+              value: services.relaxedClock.value,
+              onChanged: services.relaxedClock.set,
+            ),
+            const SizedBox(height: 16),
+            const _SectionHeader('Gameplay assists'),
+            SwitchListTile(
+              title: const Text('Suggested placement'),
+              subtitle: const Text(
+                'Adds a one-tap button that places a request in the tidiest '
+                'spot. Those requests earn no clean-run multiplier.',
+              ),
+              value: services.suggestions.value,
+              onChanged: services.suggestions.set,
+            ),
+            const SizedBox(height: 16),
+            const _SectionHeader('Legal'),
+            _LegalLink(
+              label: 'Privacy Policy',
+              url: legalUrls.privacy,
+              openUrl: services.openUrl,
+            ),
+            _LegalLink(
+              label: 'Terms of Use',
+              url: legalUrls.terms,
+              openUrl: services.openUrl,
+            ),
+            _LegalLink(
+              label: 'Support',
+              url: legalUrls.support,
+              openUrl: services.openUrl,
+            ),
+          ],
         ),
       ),
     );

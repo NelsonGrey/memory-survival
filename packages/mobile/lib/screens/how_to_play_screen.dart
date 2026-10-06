@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
-import '../shell/shell.dart';
 import '../theme/game_theme.dart';
 import '../theme/memory_survival_brand.dart';
+import 'ad_top_scaffold.dart';
 
 /// Plain-language instructions. Shown once before the first run and always
 /// reachable from Home and the pause menu. A non-gameplay screen, so it
@@ -121,87 +121,85 @@ class HowToPlayScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = services.theme.palette;
-    return Scaffold(
-      appBar: AppBar(title: const Text('How to play')),
-      body: GameScreenShell(
-        adService: services.ads,
-        body: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    Text(
-                      'Keep memory from filling up. Fit each request into free '
-                      'cells before its timer runs out, and the run keeps going.',
-                      style: TextStyle(color: p.textPrimary, fontSize: 15),
-                    ),
-                    const SizedBox(height: 16),
-                    for (final (icon, title, body, pattern) in _steps)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(icon, color: p.ok),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Semantics(
-                                    header: true,
-                                    child: Text(
-                                      title,
-                                      style: TextStyle(
-                                        color: p.textPrimary,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    body,
-                                    style: TextStyle(
-                                      color: p.textMuted,
-                                      fontSize: 13,
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                  if (pattern.isNotEmpty) ...[
-                                    const SizedBox(height: 10),
-                                    _diagram(p, pattern),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      services.howToPlay.markSeen();
-                      if (onStart != null) {
-                        onStart!();
-                      } else {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text(onStart != null ? 'Start playing' : 'Got it'),
+    return AdTopScaffold(
+      adService: services.ads,
+      title: 'How to play',
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  Text(
+                    'Keep memory from filling up. Fit each request into free '
+                    'cells before its timer runs out, and the run keeps going.',
+                    style: TextStyle(color: p.textPrimary, fontSize: 15),
                   ),
+                  const SizedBox(height: 16),
+                  for (final (icon, title, body, pattern) in _steps)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(icon, color: p.ok),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Semantics(
+                                  header: true,
+                                  child: Text(
+                                    title,
+                                    style: TextStyle(
+                                      color: p.textPrimary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  body,
+                                  style: TextStyle(
+                                    color: p.textMuted,
+                                    fontSize: 13,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                if (pattern.isNotEmpty) ...[
+                                  const SizedBox(height: 10),
+                                  _diagram(p, pattern),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    services.howToPlay.markSeen();
+                    if (onStart != null) {
+                      onStart!();
+                    } else {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(onStart != null ? 'Start playing' : 'Got it'),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

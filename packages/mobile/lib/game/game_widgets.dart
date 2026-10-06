@@ -222,3 +222,75 @@ class ForecastChip extends StatelessWidget {
     );
   }
 }
+
+/// A rounded tile with an icon, a big value and a small label, for the
+/// score, best, time and lives readouts.
+class StatTile extends StatelessWidget {
+  const StatTile({
+    super.key,
+    required this.palette,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.iconColor,
+    this.semantics,
+  });
+
+  final GameThemePalette palette;
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? iconColor;
+  final String? semantics;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: semantics ?? '$label $value',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: palette.cellFree,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: palette.cellFreeBorder.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: iconColor ?? palette.textMuted),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        color: palette.textPrimary,
+                        fontSize: 16,
+                        height: 1.15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: palette.textMuted, fontSize: 10),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
