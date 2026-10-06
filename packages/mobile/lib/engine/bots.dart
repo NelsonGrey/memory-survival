@@ -17,6 +17,7 @@ class Bot {
     this.compacts = false,
     this.cleansLeaks = false,
     this.perTick = 1 << 30,
+    this.every = 1,
   });
 
   final String name;
@@ -32,7 +33,11 @@ class Bot {
   /// a limit of 1 models a human far better than placing everything at once.
   final int perTick;
 
+  /// Acts only on every [every]th tick: a player who looks away or hesitates.
+  final int every;
+
   MemoryState act(MemoryEngine e, MemoryState s, ArrivalSource arrivals) {
+    if (s.cycle % every != 0) return s;
     s = _placeAll(e, s);
     if (cleansLeaks && s.requestQueue.isNotEmpty) {
       for (final p in s.processes) {
@@ -207,6 +212,16 @@ final humanCareful = Bot(
   perTick: 1,
 );
 final humanCasual = Bot('human-casual', _firstFit, perTick: 1);
+
+/// A slower player: one placement every other tick.
+final humanSlow = Bot(
+  'human-slow',
+  _lifetimeAware,
+  compacts: true,
+  cleansLeaks: true,
+  perTick: 1,
+  every: 2,
+);
 
 final tidyCompact = Bot(
   'tidy+compact',

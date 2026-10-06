@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import '../engine/engine.dart';
 import '../theme/game_theme.dart';
 
-/// The memory strip, drawn as a column with address 0 at the top. Free cells
-/// are outlined and empty; processes are filled blocks labelled with their
-/// remaining lifetime (infinity for a leak, a pin icon for a pinned
-/// process), so nothing relies on colour alone (MAS-BR-013).
+/// The memory strip, drawn as a column with address 0 at the top. Cell
+/// addresses sit in a gutter outside the grid. Free cells are outlined and
+/// empty; processes are filled blocks with a time-to-live pill and a bar that
+/// drains along the bottom edge (infinity for a leak, a pin icon for a pinned
+/// process, "!" when about to expire), so nothing relies on colour alone
+/// (MAS-BR-013).
 class MemoryStrip extends StatelessWidget {
   const MemoryStrip({
     super.key,
@@ -26,7 +28,7 @@ class MemoryStrip extends StatelessWidget {
   /// the placement choice lives here rather than only in buttons.
   final Set<int> validStarts;
 
-  static const double _gutter = 26;
+  static const double _gutter = 20;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,13 @@ class MemoryStrip extends StatelessWidget {
               ? constraints.maxHeight / state.cellCount
               : 32.0,
         );
-        return Container(
+        final ttlScale = math.max<int>(
+          8,
+          state.processes
+              .where((p) => p.isNormal && p.releasePolicy != ReleasePolicy.leak)
+              .fold<int>(0, (m, p) => math.max(m, p.remaining)),
+        );
+        final grid = Container(
           height: cellH * state.cellCount,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
@@ -75,20 +83,6 @@ class MemoryStrip extends StatelessWidget {
                                   width: validStarts.contains(i) ? 2 : 0.5,
                                 ),
                               ),
-                              alignment: Alignment.centerLeft,
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Text(
-                                validStarts.contains(i) ? '▸$i' : '$i',
-                                style: TextStyle(
-                                  color: validStarts.contains(i)
-                                      ? palette.ok
-                                      : palette.textMuted,
-                                  fontSize: 9,
-                                  fontWeight: validStarts.contains(i)
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                ),
-                              ),
                             ),
                           ),
                         ),
@@ -100,12 +94,47 @@ class MemoryStrip extends StatelessWidget {
                 Positioned(
                   top: p.start * cellH,
                   height: p.size * cellH,
-                  left: _gutter,
+                  left: 0,
                   right: 0,
-                  child: IgnorePointer(child: _block(p)),
+                  child: IgnorePointer(child: _block(p, ttlScale)),
                 ),
             ],
           ),
+        );
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: _gutter,
+              height: cellH * state.cellCount,
+              child: Column(
+                children: [
+                  for (var i = 0; i < state.cellCount; i++)
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: Text(
+                            validStarts.contains(i) ? '▸$i' : '$i',
+                            style: TextStyle(
+                              color: validStarts.contains(i)
+                                  ? palette.ok
+                                  : palette.textMuted,
+                              fontSize: 9,
+                              fontWeight: validStarts.contains(i)
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Expanded(child: grid),
+          ],
         );
       },
     );
@@ -126,7 +155,7 @@ class MemoryStrip extends StatelessWidget {
     return 'process $id';
   }
 
-  Widget _block(MemoryProcess p) {
+  Widget _block(MemoryProcess p, int ttlScale) {
     if (!p.isNormal) return _lockBlock(p);
     final shade = Color.lerp(
       palette.cellUsed,
@@ -134,6 +163,43 @@ class MemoryStrip extends StatelessWidget {
       (p.id % 3) * 0.18,
     )!;
     final leak = p.releasePolicy == ReleasePolicy.leak;
+    final low = !leak && p.remaining <= 2;
+    final ttl = leak
+        ? Text(
+            '∞',
+            style: TextStyle(
+              color: palette.cellUsedFg,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          )
+        : Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: low ? palette.pageBg : Colors.black.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: low ? Border.all(color: palette.danger) : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.timer_outlined,
+                  size: 11,
+                  color: low ? palette.danger : palette.cellUsedFg,
+                ),
+                const SizedBox(width: 2),
+                Text(
+                  low ? '${p.remaining} !' : '${p.remaining}',
+                  style: TextStyle(
+                    color: low ? palette.danger : palette.cellUsedFg,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          );
     final label = FittedBox(
       fit: BoxFit.scaleDown,
       child: Padding(
@@ -141,14 +207,7 @@ class MemoryStrip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              leak ? '∞' : '${p.remaining}',
-              style: TextStyle(
-                color: palette.cellUsedFg,
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-              ),
-            ),
+            ttl,
             const SizedBox(width: 4),
             Text(
               '#${p.id}',
@@ -196,6 +255,23 @@ class MemoryStrip extends StatelessWidget {
               height: 5,
               child: ColoredBox(color: Colors.black.withValues(alpha: 0.22)),
             ),
+            // Time to live: the bar drains toward the left as it expires.
+            if (!leak)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 3,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: (p.remaining / ttlScale).clamp(0.05, 1.0),
+                    child: ColoredBox(
+                      color: palette.cellUsedFg.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ),
+              ),
             Center(child: label),
           ],
         ),

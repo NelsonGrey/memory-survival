@@ -283,12 +283,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _header(p, s),
           const SizedBox(height: 8),
           WaveBanner(state: s, palette: p),
+          const SizedBox(height: 4),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 130,
+                  width: 140,
                   child: MemoryStrip(
                     state: s,
                     palette: p,
@@ -296,27 +297,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     validStarts: _game.validStarts,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _notice(p, s),
-                        _forecast(p, s),
-                        _queue(p, s),
-                        const SizedBox(height: 12),
-                        ..._placementPicker(p, s),
-                        ..._leakCleanup(p, s),
-                      ],
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 150),
+                                alignment: Alignment.topCenter,
+                                child: _notice(p, s),
+                              ),
+                              _forecast(p, s),
+                              _queue(p, s),
+                              const SizedBox(height: 12),
+                              ..._placementPicker(p, s),
+                              ..._leakCleanup(p, s),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _actions(p, s),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          _actions(p, s),
         ],
       ),
     );
@@ -480,7 +491,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   /// What happened last (a fault), or what to do next.
   Widget _notice(GameThemePalette p, MemoryState s) {
-    final sel = _game.selected;
     final String text;
     final bool bad;
     if (_game.message != null) {
@@ -492,18 +502,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     } else if (_game.toast != null) {
       text = _game.toast!;
       bad = false;
-    } else if (sel == null) {
-      text = 'Waiting for a request…';
-      bad = false;
     } else {
-      text =
-          'Tap a ▸ cell to place #${sel.id} (${sel.size} cells), '
-          'or pick an option below.';
-      bad = false;
+      // No standing instructions: the ▸ cells and the buttons say it.
+      return const SizedBox.shrink();
     }
     final good = !bad && _game.toast != null;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text,
         style: TextStyle(
@@ -528,11 +533,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Coming up', style: TextStyle(color: p.textMuted, fontSize: 12)),
+          Text(
+            _game.reserving == null
+                ? 'Arriving · tap to hold space'
+                : 'Arriving',
+            style: TextStyle(color: p.textMuted, fontSize: 12),
+          ),
           const SizedBox(height: 6),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
               for (final item in items)
                 ForecastChip(
@@ -677,37 +687,50 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _actions(GameThemePalette p, MemoryState s) {
     final ready = s.cycle >= s.overclockReadyCycle && !s.overclocked;
     final wait = s.overclockReadyCycle - s.cycle;
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: s.compactionsLeft > 0 ? _game.compact : null,
-            icon: const Icon(Icons.compress),
-            label: Text(
-              'Compact (${s.compactionsLeft}) · '
-              '${_rules.compactionTickCost} ticks, '
-              'traffic continues, '
-              '−${_rules.compactionPointCost} pts',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
+    const labelStyle = TextStyle(fontSize: 12);
+    final buttonStyle = OutlinedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      minimumSize: const Size(0, 40),
+      visualDensity: VisualDensity.compact,
+    );
+    Widget label(String text) => FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(text, style: labelStyle),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              style: buttonStyle,
+              onPressed: ready ? _game.overclock : null,
+              icon: const Icon(Icons.speed, size: 16),
+              label: label(
+                s.overclocked
+                    ? 'On'
+                    : ready
+                    ? 'Overclock'
+                    : 'Ready in $wait',
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        OutlinedButton.icon(
-          onPressed: ready ? _game.overclock : null,
-          icon: const Icon(Icons.speed),
-          label: Text(
-            s.overclocked
-                ? 'On'
-                : ready
-                ? 'Overclock'
-                : 'Ready in $wait',
-            style: const TextStyle(fontSize: 12),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Tooltip(
+              message:
+                  'Costs ${_rules.compactionTickCost} ticks and '
+                  '${_rules.compactionPointCost} pts; traffic continues.',
+              child: OutlinedButton.icon(
+                style: buttonStyle,
+                onPressed: s.compactionsLeft > 0 ? _game.compact : null,
+                icon: const Icon(Icons.compress, size: 16),
+                label: label('Compact · ${s.compactionsLeft}'),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

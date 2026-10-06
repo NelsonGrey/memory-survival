@@ -385,8 +385,9 @@ class MemoryEngine {
   /// At the end of a storm, pays out a clean one and cools the system.
   MemoryState _settleWave(MemoryState s) {
     final period = rules.wavePeriod;
-    if (period <= 0 || s.cycle % period != 0) return s;
-    final wave = s.cycle ~/ period;
+    final waveCycle = s.cycle - rules.firstWaveDelay;
+    if (period <= 0 || waveCycle <= 0 || waveCycle % period != 0) return s;
+    final wave = waveCycle ~/ period;
     final clean = s.lastFaultCycle < s.cycle - rules.stormTicks;
     if (!clean) {
       return s.copyWith(

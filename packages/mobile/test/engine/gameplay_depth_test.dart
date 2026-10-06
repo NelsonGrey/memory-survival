@@ -46,8 +46,9 @@ MemoryProcess proc(
 MemoryState withStreak(MemoryState s, int streak) => s.copyWith(streak: streak);
 
 void main() {
+  firstWaveDelayTests();
   group('waves', () {
-    const w = Ruleset();
+    const w = Ruleset(firstWaveDelay: 0);
 
     test('phases repeat: calm, warning, storm, recovery', () {
       expect(waveAt(w, 0).phase, WavePhase.calm);
@@ -99,7 +100,7 @@ void main() {
 
   group('generator', () {
     test('wave 1 has only standard requests; wave 2 unlocks burst', () {
-      const rules = Ruleset(familyPerMille: 1000);
+      const rules = Ruleset(familyPerMille: 1000, firstWaveDelay: 0);
       final fams1 = <RequestFamily>{};
       final fams2 = <RequestFamily>{};
       for (var seed = 0; seed < 60; seed++) {
@@ -122,6 +123,7 @@ void main() {
         familyPerMille: 1000,
         arrivalPerMille: 1000,
         arrivalMaxPerMille: 1000,
+        firstWaveDelay: 0,
       );
       for (var wave = 2; wave <= 8; wave++) {
         final seen = <RequestFamily>{};
@@ -403,7 +405,7 @@ void main() {
   });
 
   group('waves in the engine', () {
-    const waved = Ruleset(cellCount: 12);
+    const waved = Ruleset(cellCount: 12, firstWaveDelay: 0);
     const e = MemoryEngine(waved);
 
     MemoryState run(MemoryState s, int to) {
@@ -484,7 +486,9 @@ void main() {
     });
 
     test('lives are never refunded by cooling', () {
-      const e = MemoryEngine(Ruleset(cellCount: 12, wavePeriod: 25));
+      const e = MemoryEngine(
+        Ruleset(cellCount: 12, wavePeriod: 25, firstWaveDelay: 0),
+      );
       var s = e.initial().copyWith(livesLeft: 1, heat: 2);
       for (var i = 0; i < 25; i++) {
         s = e.tick(s);
@@ -555,7 +559,7 @@ void main() {
     });
 
     test('only one rejection per wave', () {
-      const waved = Ruleset(cellCount: 12);
+      const waved = Ruleset(cellCount: 12, firstWaveDelay: 0);
       const e = MemoryEngine(waved);
       var s = e.initial(
         requests: [req(1, 3, deadline: 9), req(2, 3, deadline: 9)],
@@ -731,6 +735,29 @@ void main() {
       s = e.tick(s);
       expect(s.status, RunStatus.completed);
       expect(e.tick(s).cycle, s.cycle, reason: 'a finished run is frozen');
+    });
+  });
+}
+
+void firstWaveDelayTests() {
+  group('first wave delay', () {
+    const rules = Ruleset(firstWaveDelay: 20);
+
+    test('the first storm comes later, counting down from calm', () {
+      expect(waveAt(rules, 0).phase, WavePhase.calm);
+      expect(waveAt(rules, 0).number, 1);
+      expect(waveAt(rules, 0).ticksToStorm, 40);
+      expect(waveAt(rules, 20).ticksToStorm, 20);
+      expect(waveAt(rules, 34).phase, WavePhase.calm);
+      expect(waveAt(rules, 35).phase, WavePhase.warning);
+      expect(waveAt(rules, 40).phase, WavePhase.storm);
+    });
+
+    test('later waves keep the normal period', () {
+      expect(waveAt(rules, 44).number, 1);
+      expect(waveAt(rules, 45).number, 2);
+      expect(waveAt(rules, 45).phase, WavePhase.recovery);
+      expect(waveAt(rules, 65).phase, WavePhase.storm);
     });
   });
 }

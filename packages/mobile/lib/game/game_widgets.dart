@@ -178,45 +178,38 @@ class ForecastChip extends StatelessWidget {
           '${size == null ? 'size unknown' : '$size cells'}. '
           '${lines.skip(1).join(', ')}',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: palette.cellFreeBorder,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'in ${item.ticksAway} · ${lines.first}',
-              style: TextStyle(
-                color: palette.textPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onReserve,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: onReserve != null ? palette.ok : palette.cellFreeBorder,
+              width: onReserve != null ? 1.5 : 1,
             ),
-            for (final l in lines.skip(1))
-              Text(l, style: TextStyle(color: palette.textMuted, fontSize: 11)),
-            if (onReserve != null)
-              TextButton(
-                onPressed: onReserve,
-                style: TextButton.styleFrom(
-                  foregroundColor: palette.ok,
-                  minimumSize: const Size(48, 40),
-                  padding: EdgeInsets.zero,
-                  alignment: Alignment.centerLeft,
-                  tapTargetSize: MaterialTapTargetSize.padded,
-                ),
-                child: const Text(
-                  'Reserve space',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'in ${item.ticksAway} · ${lines.first}',
+                style: TextStyle(
+                  color: palette.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
                 ),
               ),
-          ],
+              for (final l in lines.skip(1))
+                Text(
+                  l,
+                  style: TextStyle(color: palette.textMuted, fontSize: 11),
+                ),
+            ],
+          ),
         ),
       ),
     );

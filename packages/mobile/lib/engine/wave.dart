@@ -38,10 +38,22 @@ WaveInfo waveAt(Ruleset rules, int cycle) {
       ticksLeftInStorm: 0,
     );
   }
-  final pos = cycle % period;
-  final number = cycle ~/ period + 1;
   final stormStart = period - rules.stormTicks;
   final warnStart = stormStart - rules.warningTicks;
+  // The first wave starts late: until then it is calm, counting down.
+  final shifted = cycle - rules.firstWaveDelay;
+  if (shifted < 0) {
+    final left = stormStart - shifted;
+    return WaveInfo(
+      phase: left <= rules.warningTicks ? WavePhase.warning : WavePhase.calm,
+      number: 1,
+      ticksToStorm: left,
+      ticksLeftInStorm: 0,
+    );
+  }
+  cycle = shifted;
+  final pos = cycle % period;
+  final number = cycle ~/ period + 1;
   final WavePhase phase;
   if (pos >= stormStart) {
     phase = WavePhase.storm;

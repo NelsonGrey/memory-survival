@@ -5,7 +5,7 @@ import 'package:memory_survival/theme/game_theme.dart';
 import 'package:memory_survival/theme/memory_survival_brand.dart';
 
 void main() {
-  const rules = Ruleset(cellCount: 12);
+  const rules = Ruleset(cellCount: 12, firstWaveDelay: 0);
   const engine = MemoryEngine(rules);
   MemoryState at(int cycle, {int heat = 0}) =>
       engine.initial().copyWith(cycle: cycle, heat: heat);

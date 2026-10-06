@@ -14,12 +14,25 @@ String summary(List<MemoryState> runs) {
 }
 
 void main(List<String> args) {
-  final rules = const Ruleset();
-  print('== default (version ${Ruleset.currentVersion})');
-  for (final bot in [randomBot(1), ...allBots]) {
-    final runs = [
-      for (var seed = 0; seed < 300; seed++) playBot(rules, bot, seed),
-    ];
-    print('  ${bot.name.padRight(18)} ${summary(runs)}');
+  final variants = <String, Ruleset>{
+    'v4 (previous)': const Ruleset(
+      requestDeadline: 6,
+      arrivalPerMille: 500,
+      arrivalRampPerMille: 40,
+      firstWaveDelay: 0,
+      stormPerMille: 800,
+      stormRampPerMille: 40,
+    ),
+    'default (v${Ruleset.currentVersion})': const Ruleset(),
+  };
+  final bots = [humanCareful, humanCasual, humanSlow, tidyCompact];
+  for (final entry in variants.entries) {
+    print('== ${entry.key}');
+    for (final bot in bots) {
+      final runs = [
+        for (var seed = 0; seed < 300; seed++) playBot(entry.value, bot, seed),
+      ];
+      print('  ${bot.name.padRight(16)} ${summary(runs)}');
+    }
   }
 }

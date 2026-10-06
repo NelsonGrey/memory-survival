@@ -95,7 +95,7 @@ void main() {
         ),
       );
       expect(find.textContaining('Clean run ×1'), findsOneWidget);
-      expect(find.text('Coming up'), findsOneWidget);
+      expect(find.textContaining('Arriving'), findsOneWidget);
       expect(find.textContaining('Wave 1'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
@@ -171,7 +171,7 @@ void main() {
         ),
       );
       expect(find.text('Overclock'), findsOneWidget);
-      expect(find.textContaining('traffic continues'), findsOneWidget);
+      expect(find.textContaining('Compact'), findsOneWidget);
       await tester.tap(find.text('Overclock'));
       await tester.pump();
       expect(find.textContaining('Overclock 10'), findsOneWidget);

@@ -104,6 +104,8 @@ Ruleset _quiet({
       : (familyPerMille == 0 ? 400 : familyPerMille),
   progressiveFamilies: false,
   wavePeriod: wavePeriod,
+  // Authored scenarios keep their own storm timing.
+  firstWaveDelay: 0,
   stormPerMille: storm,
   stormRampPerMille: 0,
 );

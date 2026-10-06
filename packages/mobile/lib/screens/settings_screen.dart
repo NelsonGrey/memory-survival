@@ -321,8 +321,14 @@ class _SectionHeader extends StatelessWidget {
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }

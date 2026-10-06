@@ -45,15 +45,15 @@ class Ruleset {
   const Ruleset({
     this.version = currentVersion,
     this.cellCount = 16,
-    this.requestDeadline = 6,
+    this.requestDeadline = 8,
     this.minDeadline = 2,
     this.maxQueue = 4,
     this.lives = 3,
     this.compactionCharges = 2,
     this.compactionTickCost = 2,
     this.compactionPointCost = 5,
-    this.arrivalPerMille = 500,
-    this.arrivalRampPerMille = 40,
+    this.arrivalPerMille = 400,
+    this.arrivalRampPerMille = 30,
     this.arrivalMaxPerMille = 750,
     this.minSize = 1,
     this.maxSize = 5,
@@ -71,11 +71,12 @@ class Ruleset {
     },
     this.progressiveFamilies = true,
     this.wavePeriod = 25,
+    this.firstWaveDelay = 20,
     this.warningTicks = 5,
     this.stormTicks = 5,
     this.recoveryTicks = 4,
-    this.stormPerMille = 800,
-    this.stormRampPerMille = 40,
+    this.stormPerMille = 500,
+    this.stormRampPerMille = 20,
     this.wavePayout = 10,
     this.multiplierStep = 4,
     this.multiplierMax = 5,
@@ -102,7 +103,7 @@ class Ruleset {
        assert(multiplierStep > 0 && multiplierMax >= 1);
 
   /// Bump whenever any rule or default balance value changes.
-  static const currentVersion = 4;
+  static const currentVersion = 5;
 
   final int version;
 
@@ -159,6 +160,9 @@ class Ruleset {
 
   /// Ticks between storms.
   final int wavePeriod;
+
+  /// Extra calm ticks before wave 1, so a new player gets a longer runway.
+  final int firstWaveDelay;
   final int warningTicks;
   final int stormTicks;
 
@@ -257,6 +261,7 @@ class Ruleset {
     families: families ?? this.families,
     progressiveFamilies: progressiveFamilies ?? this.progressiveFamilies,
     wavePeriod: wavePeriod ?? this.wavePeriod,
+    firstWaveDelay: firstWaveDelay,
     warningTicks: warningTicks,
     stormTicks: stormTicks,
     recoveryTicks: recoveryTicks,

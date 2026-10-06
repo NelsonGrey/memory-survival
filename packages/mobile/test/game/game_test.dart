@@ -85,7 +85,8 @@ void main() {
           home: GameScreen(services: services, seed: 3, autoTick: false),
         ),
       );
-      expect(find.text('Waiting for a request…'), findsOneWidget);
+      expect(find.text('Paused'), findsNothing);
+      expect(find.textContaining('Tap a'), findsNothing);
       expect(find.text('Paused'), findsNothing);
 
       await tester.tap(find.byTooltip('Pause'));

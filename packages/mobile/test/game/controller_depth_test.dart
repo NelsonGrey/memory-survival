@@ -41,7 +41,7 @@ void main() {
     });
 
     test('mid-run it shows a lifetime band, not the exact lifetime', () {
-      final g = controller(rules: const Ruleset(), cycle: 60);
+      final g = controller(rules: const Ruleset(firstWaveDelay: 0), cycle: 60);
       for (final item in g.forecast) {
         expect(item.detail, ForecastDetail.band);
         final label = item.lifetimeLabel;
@@ -56,7 +56,10 @@ void main() {
     test('late in the run only the size is shown, sometimes scrambled', () {
       final seen = <bool>{};
       for (var cycle = 130; cycle < 400; cycle += 3) {
-        final g = controller(rules: const Ruleset(), cycle: cycle);
+        final g = controller(
+          rules: const Ruleset(firstWaveDelay: 0),
+          cycle: cycle,
+        );
         for (final item in g.forecast) {
           expect(item.detail, ForecastDetail.sizeOnly);
           expect(item.lifetimeLabel, isEmpty);
@@ -208,7 +211,7 @@ void main() {
     });
 
     test('a scrambled forecast cannot be reserved', () {
-      final g = controller(rules: const Ruleset(), cycle: 130);
+      final g = controller(rules: const Ruleset(firstWaveDelay: 0), cycle: 130);
       final scrambled = g.forecast.where((f) => f.scrambled);
       for (final item in scrambled) {
         g.beginReserve(item);
@@ -281,7 +284,10 @@ void main() {
 
   group('notes', () {
     test('clearing a wave shows a toast that then fades', () {
-      final g = controller(rules: const Ruleset(cellCount: 12), cycle: 24);
+      final g = controller(
+        rules: const Ruleset(cellCount: 12, firstWaveDelay: 0),
+        cycle: 24,
+      );
       g.tick();
       expect(g.toast, contains('Wave 1 cleared'));
       for (var i = 0; i < toastTicks; i++) {
