@@ -8,8 +8,6 @@ packages/mobile/.flutter-plugins*
 packages/mobile/ios/.bundle/
 packages/mobile/ios/vendor/
 packages/mobile/ios/fastlane/report.xml
-# Leftover local Firebase config from before the project dropped Firebase.
-firebase-config/
 *.log
 .env
 .env.*
