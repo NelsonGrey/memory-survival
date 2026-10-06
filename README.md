@@ -39,13 +39,18 @@ tap-only) are in:
   volatile, pinned, linked, leak).
 - **Clean-run multiplier** on every point, broken by faults, compaction, a
   full waiting list, or fragmentation; tidy placements earn a bonus.
-- **Forecast** of the next arrivals, with detail that thins out as waves pass.
+- **Arriving** list of the next requests, with detail that thins out as waves
+  pass; tap one to hold space for it. The first storm comes after a calm
+  stretch (`firstWaveDelay`).
 - **Faults add heat** (shorter deadlines, then a locked cell) that a clean wave
   cools; lives are never refunded.
+- **Tower layout**: the memory strip runs the full height of the screen with
+  cell numbers in an outside gutter; every live block shows a time-to-live
+  pill and a draining bar (red "!" at two ticks or less).
 - **Placement choices**: valid starts marked on the strip, Start/End of each
   gap with the resulting biggest free block, and an optional one-tap
   suggestion that earns no multiplier.
-- **Risk and reward**: overclock, reserve space for a forecast request, turn a
+- **Risk and reward**: overclock, hold space for an arriving request, turn a
   request away once per wave, clean up leaks at the cost of locked cells.
 - **Compaction** costs ticks while arrivals continue.
 - **36 authored scenarios** in four chapters, each with survive / tidy / clean
@@ -54,11 +59,13 @@ tap-only) are in:
   most waves), a leaderboard per ruleset version, and cosmetic palette
   unlocks earned through mastery.
 
-**Not built yet:** the original visual identity (MAS-BR-009), Android
-Play Games Services, and gameplay analytics.
+**Not built yet:** Android Play Games Services and gameplay analytics. The
+original visual identity (S2, Shrinking Safe Corridor) is in: mark, wordmark,
+launch screen, and the pressure-wall backdrop.
 
-Balance tooling: `dart run tool/balance.dart` (survival of scripted policies)
-and `dart run tool/pick_scenario_seeds.dart` (re-picks authored scenario
+Balance tooling: `dart run tool/balance.dart` (survival of scripted policies,
+including human-speed bots that act every tick or every other tick; rules are
+tuned so a slow-paced player lasts a few minutes, not seconds) and `dart run tool/pick_scenario_seeds.dart` (re-picks authored scenario
 seeds after a rules change).
 
 ## Repository Structure

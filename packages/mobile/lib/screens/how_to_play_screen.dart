@@ -22,23 +22,27 @@ class HowToPlayScreen extends StatelessWidget {
       Icons.inbox_outlined,
       'Requests arrive',
       'Each waiting request needs a number of cells in a row, and lives for '
-          'a number of ticks once placed. The ⏱ bar is how long it will wait. '
-          '"Coming up" shows what arrives next.',
+          'a number of ticks once placed. The bar under a waiting request '
+          'drains as its time to be placed runs out, and turns red with a "!" '
+          'when it is nearly gone. "Arriving" shows what comes next.',
       'uu.....u',
     ),
     (
       Icons.touch_app_outlined,
       'Place them',
-      'Tap a request, then tap a ▸ cell or choose Start or End of a gap. '
-          'Where you put it decides what space is left: each option shows the '
-          'biggest gap you would keep.',
+      'Tap a request, then tap a ▸ cell in the tower or choose Start or End '
+          'of a gap. Cell numbers run down the left side. Where you put it '
+          'decides what space is left: each option shows the biggest gap you '
+          'would keep.',
       'uuhhh.uu',
     ),
     (
       Icons.timelapse,
       'Time frees space',
-      'The number on a block counts down each tick. At 0 the process ends '
-          'and its cells open up again.',
+      'Each block shows a clock with the ticks it has left, and a bar along '
+          'its bottom edge drains as it runs down. At 0 the process ends and '
+          'its cells open up again. A red "!" means it is about to go, so a '
+          'gap is about to open.',
       'uu...uu.',
     ),
     (
@@ -53,9 +57,10 @@ class HowToPlayScreen extends StatelessWidget {
     (
       Icons.waves,
       'Waves of pressure',
-      'Traffic builds to a storm every so often, with a warning first. Clear '
-          'one without a fault for a payout and to cool the system. Each wave '
-          'brings a new kind of process.',
+      'Traffic builds to a storm every so often, with a warning first. The '
+          'first storm comes after a calm stretch to learn in. Clear one '
+          'without a fault for a payout and to cool the system. Each wave '
+          'brings a new kind of process and a little more traffic.',
       '',
     ),
     (
@@ -87,9 +92,10 @@ class HowToPlayScreen extends StatelessWidget {
     (
       Icons.speed,
       'Take a risk',
-      'Overclock for double score but faster arrivals. Reserve space for a '
-          'request you can see coming. Turn away one request per wave if you '
-          'must, at the cost of your multiplier.',
+      'Overclock for double score but faster arrivals. Tap a request under '
+          '"Arriving", then a cell, to hold space for it before it lands. Turn '
+          'away one request per wave if you must, at the cost of your '
+          'multiplier.',
       '',
     ),
   ];
