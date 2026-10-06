@@ -73,8 +73,13 @@ Privacy Policy URL, below.
    - The game only signs in after the player opts in (first-run prompt,
      home-screen badge, or Settings > Game Center). Reviewers can play the
      whole game without it.
-   - Game Center's cloud-saved games (`SaveGame`) are used for cross-device
-     progress sync — no separate configuration beyond Game Center being on.
+   - Game Center's cloud-saved games (`SaveGame`) have a service layer
+     (`saveCloudProgress` / `loadCloudProgress`) but the game does not use it
+     yet: campaign progress is not synced across devices. No separate
+     configuration is needed when it is wired in.
+   - On every sign-in the app grants achievements earned while disconnected
+     and re-sends this device's best endless score for the current ruleset
+     version.
    - The `com.apple.developer.game-center` entitlement is already in
      `ios/Runner/Runner.entitlements` and the Xcode project.
    - Validate on a real device signed into Game Center in a TestFlight build:

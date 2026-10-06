@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memory_survival/app/app_services.dart';
 import 'package:memory_survival/engine/ruleset.dart';
 import 'package:memory_survival/shell/shell.dart';
 import 'package:memory_survival/gamecenter/connection_gated_progress_service.dart';
@@ -183,6 +184,39 @@ void main() {
       await g.unlockAchievement(GameCenterIds.achievementFirstAllocation);
       expect(inner.submittedScores, [42]);
       expect(inner.unlockedAchievements, hasLength(1));
+    });
+  });
+
+  group('AppServices on connect', () {
+    test('grants offline achievements and re-sends the best score', () async {
+      SharedPreferences.setMockInitialValues({});
+      final inner = FakeGameCenterProgressService();
+      final services = AppServices(
+        consent: FakeConsentService(),
+        entitlement: FakeEntitlementService(),
+        ads: FakeAdService(),
+        auth: FakePlatformGameAuthService(),
+        progress: inner,
+        connection: GameCenterConnection(
+          auth: FakePlatformGameAuthService(),
+          supported: true,
+        ),
+        openUrl: (_) async {},
+      );
+      await services.bestScore.submit(500);
+      await services.progress.unlockAchievement(
+        GameCenterIds.achievementFirstAllocation,
+      );
+      await services.progress.submitScore(500);
+      expect(inner.unlockedAchievements, isEmpty);
+      expect(inner.submittedScores, isEmpty);
+
+      await services.connection.connect();
+
+      expect(inner.unlockedAchievements, [
+        GameCenterIds.achievementFirstAllocation,
+      ]);
+      expect(inner.submittedScores, [500]);
     });
   });
 

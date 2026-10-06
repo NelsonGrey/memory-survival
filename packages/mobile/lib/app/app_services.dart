@@ -76,6 +76,15 @@ class AppServices {
       progressBackend,
       this.connection,
     );
+    // On every successful sign-in, grant what was earned while disconnected
+    // and push this device's best endless score, which a disconnected run
+    // could not submit. Game Center keeps only the better score, so
+    // re-sending is harmless.
+    this.connection.onConnected = () async {
+      await this.progress.flushEarned();
+      final best = this.bestScore.value;
+      if (best > 0) await this.progress.submitScore(best);
+    };
   }
 
   final ConsentService consent;
