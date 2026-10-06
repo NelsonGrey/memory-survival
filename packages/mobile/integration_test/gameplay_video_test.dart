@@ -5,11 +5,19 @@ import 'package:memory_survival/app/app_services.dart';
 import 'package:memory_survival/engine/engine.dart';
 import 'package:memory_survival/game/game_controller.dart';
 import 'package:memory_survival/game/game_screen.dart';
+import 'package:memory_survival/game/game_widgets.dart';
 import 'package:memory_survival/gamecenter/fake_game_center_progress_service.dart';
 import 'package:memory_survival/shell/shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// This capture is a guided tour, not a speed-run. Give viewers time to read
+// the board before and after each action and to connect the action to the
+// resulting change in the memory tower.
 const _beat = Duration(milliseconds: 1500);
+const _titleBeat = Duration(milliseconds: 2400);
+const _playBeat = Duration(milliseconds: 900);
+const _optionPreview = Duration(milliseconds: 2200);
+const _rapidOptionPreview = Duration(milliseconds: 1200);
 
 AppServices _services() => AppServices(
   consent: FakeConsentService(),
@@ -25,7 +33,12 @@ Future<void> _hold(WidgetTester tester, [Duration duration = _beat]) async {
   await Future<void>.delayed(duration);
 }
 
-Future<void> _title(WidgetTester tester, String title, String detail) async {
+Future<void> _title(
+  WidgetTester tester,
+  String title,
+  String detail, {
+  Duration duration = _titleBeat,
+}) async {
   await tester.pumpWidget(
     MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -69,7 +82,7 @@ Future<void> _title(WidgetTester tester, String title, String detail) async {
       ),
     ),
   );
-  await _hold(tester, const Duration(milliseconds: 1900));
+  await _hold(tester, duration);
 }
 
 Future<void> _waitForRequest(WidgetTester tester) async {
@@ -91,10 +104,14 @@ void main() {
     final services = _services();
     await services.initialize();
 
+    // Let the simulator finish presenting the app before picture begins so
+    // the opening card is captured instead of being hidden by launch UI.
+    await _hold(tester, const Duration(seconds: 3));
     await _title(
       tester,
       'MEMORY SURVIVAL',
       'Every placement scores. Every gap can end the run.',
+      duration: const Duration(seconds: 5),
     );
 
     await tester.pumpWidget(
@@ -118,6 +135,7 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('Start · cells').first);
     await _hold(tester);
 
@@ -134,6 +152,7 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     final end = find.textContaining('End · cells');
     await tester.tap(
       end.evaluate().isEmpty
@@ -154,6 +173,7 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('Suggested: cell'));
     await _hold(tester);
 
@@ -169,11 +189,13 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
-    final reserve = find.text('Reserve space').first;
+    await _hold(tester, _optionPreview);
+    final reserve = find.byType(ForecastChip).first;
     await tester.tap(reserve);
     await tester.pump();
     final reserveCell = find.textContaining('▸').first;
     await tester.ensureVisible(reserveCell);
+    await _hold(tester, _optionPreview);
     await tester.tap(reserveCell);
     await _hold(tester);
 
@@ -188,9 +210,11 @@ void main() {
         home: GameScreen(services: services, seed: 7),
       ),
     );
+    await _hold(tester, _optionPreview);
     await tester.tap(find.text('Overclock'));
     await _hold(tester);
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('Start · cells').first);
     await _hold(tester);
 
@@ -206,6 +230,7 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('Turn away #'));
     await _hold(tester);
 
@@ -221,9 +246,11 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('End · cells').first);
     await tester.pump();
-    await tester.tap(find.textContaining('Compact ('));
+    await _hold(tester, _optionPreview);
+    await tester.tap(find.textContaining('Compact ·'));
     await _hold(tester, const Duration(milliseconds: 2200));
 
     await _title(
@@ -250,11 +277,13 @@ void main() {
       ),
     );
     await _waitForRequest(tester);
+    await _hold(tester, _optionPreview);
     await tester.tap(find.textContaining('Start · cells').first);
     await tester.pump();
     final cleanup = find.textContaining('Clean up leak #');
     expect(cleanup, findsOneWidget);
     await tester.ensureVisible(cleanup);
+    await _hold(tester, _optionPreview);
     await tester.tap(cleanup);
     await _hold(tester);
 
@@ -301,12 +330,23 @@ void main() {
           ? fills.first
           : null;
       if (target != null) {
-        await tester.ensureVisible(target);
-        await tester.pump();
-        await tester.tap(target);
+        await _hold(tester, _rapidOptionPreview);
+        // The live clock may update the available ranges during the preview;
+        // re-read the visible choices before acting on one.
+        final currentStarts = find.textContaining('Start · cells');
+        final currentEnds = find.textContaining('End · cells');
+        final currentFills = find.textContaining('Fill · cells');
+        final currentTarget = move.isEven && currentStarts.evaluate().isNotEmpty
+            ? currentStarts.first
+            : currentEnds.evaluate().isNotEmpty
+            ? currentEnds.first
+            : currentFills.evaluate().isNotEmpty
+            ? currentFills.first
+            : null;
+        if (currentTarget != null) await tester.tap(currentTarget);
       }
       await tester.pump(baseTickDuration);
-      await _hold(tester, const Duration(milliseconds: 650));
+      await _hold(tester, _playBeat);
       if (find.text('Run over').evaluate().isNotEmpty) break;
     }
     await _hold(tester, const Duration(milliseconds: 2200));
