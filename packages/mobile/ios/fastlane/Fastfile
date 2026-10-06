@@ -1,0 +1,324 @@
+# Fastfile for Memory Survival's iOS release pipeline (ported from Intercept
+# Echo's: same Apple account, same lanes).
+#
+# Signing is automatic, authenticated by an App Store Connect API key
+# (-allowProvisioningUpdates at the xcodebuild level) rather than a
+# git-based certificate store (fastlane match).
+# Memory Survival has no Firebase backend (Game Center handles sign-in) and
+# no live AdMob unit IDs yet (docs/STORE_SETUP.md: it ships on
+# AdMobConfig.test() until a real AdMob app is provisioned), so there is no
+# native-config swap or ad-unit dart-define step to run before a release
+# build. Once real AdMob IDs exist, they must be swapped in before any
+# build that goes to App Review.
+
+require 'shellwords'
+
+# App Review / TestFlight contact details come from CI secrets, never the
+# repo — this repository is public.
+def required_env(name)
+  value = ENV[name].to_s.strip
+  UI.user_error!("#{name} is not set — add it as a GitHub Actions secret.") if value.empty?
+  value
+end
+
+default_platform(:ios)
+
+platform :ios do
+  # Normalizes APP_STORE_CONNECT_KEY into raw PEM/base64 content, handling
+  # quoting/escaping artifacts from however the secret was pasted in.
+  def normalized_app_store_connect_key_content
+    private_key_content = ENV["APP_STORE_CONNECT_KEY"]
+    if private_key_content.nil? || private_key_content.empty?
+      UI.user_error!("APP_STORE_CONNECT_KEY environment variable is not set or empty")
+    end
+    private_key_content
+  end
+
+  # Builds the fastlane App Store Connect API key object, for actions that
+  # talk to the App Store Connect web API directly (upload_to_testflight,
+  # deliver).
+  def app_store_api_key
+    private_key_content = normalized_app_store_connect_key_content
+
+    is_pem = private_key_content.include?("-----BEGIN")
+    cleaned = private_key_content.gsub(/\s+/, "")
+    looks_base64 = cleaned =~ /\A[A-Za-z0-9+\/=]+\z/ && cleaned.length > 100
+
+    if !is_pem && looks_base64
+      UI.message("Detected APP_STORE_CONNECT_KEY as base64; passing directly as key_content (is_key_content_base64: true)")
+      return app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+        key_content: cleaned,
+        is_key_content_base64: true,
+        in_house: false
+      )
+    end
+
+    private_key_content = private_key_content.strip
+    private_key_content = private_key_content.gsub(/\A['\"]|['\"]\z/, '')
+    private_key_content = private_key_content.gsub(/\\n/, "\n")
+    private_key_content = private_key_content.gsub(/\r\n?/, "\n")
+    private_key_content = private_key_content.lines.map { |l| l.strip }.reject { |l| l.empty? }.join("\n") + "\n"
+
+    unless private_key_content.include?("-----BEGIN PRIVATE KEY-----") || private_key_content.include?("-----BEGIN EC PRIVATE KEY-----")
+      begin
+        require 'base64'
+        decoded = Base64.decode64(private_key_content)
+        if decoded.include?("-----BEGIN")
+          private_key_content = decoded
+          UI.message("Decoded APP_STORE_CONNECT_KEY from base64")
+        end
+      rescue => e
+        UI.message("Failed to decode APP_STORE_CONNECT_KEY as base64: #{e.message}")
+      end
+    end
+
+    require 'tempfile'
+    key_file = Tempfile.new(['app_store_connect_key', '.p8'])
+    key_file.write(private_key_content)
+    key_file.close
+
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+      key_filepath: key_file.path,
+      in_house: false
+    )
+  end
+
+  # Writes the same App Store Connect key to a temp .p8 FILE PATH, for
+  # xcodebuild's -authenticationKeyPath flag (automatic signing via
+  # -allowProvisioningUpdates authenticates at the xcodebuild CLI level,
+  # not through fastlane's Spaceship session, so it needs a path rather
+  # than the api_key object above).
+  def app_store_connect_key_file_path
+    private_key_content = normalized_app_store_connect_key_content
+
+    unless private_key_content.include?("-----BEGIN")
+      require 'base64'
+      decoded = Base64.decode64(private_key_content.gsub(/\s+/, ""))
+      private_key_content = decoded if decoded.include?("-----BEGIN")
+    end
+
+    private_key_content = private_key_content.gsub(/\A['\"]|['\"]\z/, '')
+    private_key_content = private_key_content.gsub(/\\n/, "\n")
+    private_key_content = private_key_content.gsub(/\r\n?/, "\n")
+    private_key_content = private_key_content.lines.map { |l| l.strip }.reject { |l| l.empty? }.join("\n") + "\n"
+
+    unless private_key_content.include?("-----BEGIN PRIVATE KEY-----") || private_key_content.include?("-----BEGIN EC PRIVATE KEY-----")
+      UI.user_error!("APP_STORE_CONNECT_KEY could not be converted to a valid .p8 key file")
+    end
+
+    # Xcode's CryptoKit parser rejects PEM whose header/body/footer were
+    # flattened onto one line or whose body isn't wrapped at 64 columns,
+    # so rebuild a canonical document from just the base64 payload.
+    pem_match = private_key_content.match(/-----BEGIN ([A-Z ]*PRIVATE KEY)-----(.*?)-----END \1-----/m)
+    if pem_match
+      body = pem_match[2].gsub(/\s+/, "")
+      private_key_content = "-----BEGIN #{pem_match[1]}-----\n#{body.scan(/.{1,64}/).join("\n")}\n-----END #{pem_match[1]}-----\n"
+    end
+
+    require 'tempfile'
+    key_file = Tempfile.new(['app_store_connect_xcode_auth', '.p8'])
+    key_file.write(private_key_content)
+    key_file.flush
+    key_file.close
+
+    # Keep a strong reference so Ruby GC does not unlink the tempfile before xcodebuild uses it.
+    @xcode_auth_key_tempfile = key_file
+    key_file.path
+  end
+
+  # Forces the Runner target into automatic signing. The project's
+  # pbxproj does not set CODE_SIGN_STYLE on the Runner target (only on
+  # RunnerTests) — don't assume it defaults to automatic.
+  def ensure_xcode_automatic_signing!
+    team_id = ENV["FASTLANE_TEAM_ID"].to_s.strip
+    raise "Missing FASTLANE_TEAM_ID" if team_id.empty?
+
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      path: "Runner.xcodeproj",
+      targets: ["Runner"],
+      team_id: team_id
+    )
+
+    team_id
+  end
+
+  def clear_derived_data
+    sh("rm -rf ~/Library/Developer/Xcode/DerivedData/*")
+  end
+
+  def flutter_deps
+    Dir.chdir("../../") { sh("flutter pub get") }
+  end
+
+  desc "Build the Flutter iOS app, unsigned — sanity check only"
+  lane :build_only do
+    flutter_deps
+    Dir.chdir("../../") { sh("flutter build ios --release --no-codesign") }
+  end
+
+  # Shared by beta/build_appstore: builds and signs the app, leaving the
+  # signed IPA at build/ios/ipa for the caller to upload or archive.
+  def build_signed_ipa!(output_name:)
+    team_id = ensure_xcode_automatic_signing!
+    authentication_key_path = app_store_connect_key_file_path
+    authentication_key_id = ENV["APP_STORE_CONNECT_KEY_ID"].to_s.strip
+    authentication_issuer_id = ENV["APP_STORE_CONNECT_ISSUER_ID"].to_s.strip
+
+    clear_derived_data
+    sh("rm -rf ../Pods")
+    sh("rm -f ../Podfile.lock")
+
+    flutter_deps
+    Dir.chdir("../../") do
+      sh("rm -rf build")
+      sh("flutter clean || true")
+      sh("flutter pub get")
+      # --no-codesign: Flutter's own default signing identity would fight
+      # xcodebuild's -allowProvisioningUpdates below.
+      sh("flutter build ios --release --no-codesign")
+    end
+
+    begin
+      build_app(
+        workspace: "Runner.xcworkspace",
+        scheme: "Runner",
+        clean: true,
+        export_method: "app-store",
+        output_directory: "../../build/ios/ipa",
+        output_name: output_name,
+        export_options: {
+          signingStyle: "automatic",
+          teamID: team_id
+        },
+        xcargs: [
+          "-allowProvisioningUpdates",
+          "-authenticationKeyPath #{Shellwords.escape(authentication_key_path)}",
+          "-authenticationKeyID #{Shellwords.escape(authentication_key_id)}",
+          "-authenticationKeyIssuerID #{Shellwords.escape(authentication_issuer_id)}"
+        ].join(" ")
+      )
+    ensure
+      if @xcode_auth_key_tempfile
+        @xcode_auth_key_tempfile.unlink
+        @xcode_auth_key_tempfile = nil
+      end
+    end
+
+    ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+    unless ipa_path && File.exist?(ipa_path) && File.size(ipa_path) > 0
+      UI.user_error!("gym failed to create a non-empty IPA (got #{ipa_path.inspect})")
+    end
+    UI.success("✅ Signed IPA created at #{ipa_path}")
+    ipa_path
+  end
+
+  desc "Build and sign iOS app for App Store distribution (build only, no upload)"
+  lane :build_appstore do
+    build_signed_ipa!(output_name: "MemorySurvival.ipa")
+  end
+
+  desc "Build, sign, and upload to TestFlight"
+  lane :beta do
+    ipa_path = build_signed_ipa!(output_name: "MemorySurvival.ipa")
+
+    upload_to_testflight(
+      api_key: app_store_api_key,
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: true,
+      beta_app_feedback_email: required_env("BETA_FEEDBACK_EMAIL"),
+      # Upload only: internal testers get the build without review. External
+      # distribution (distribute_external/groups) additionally needs Test
+      # Information saved in App Store Connect and Beta App Review.
+      beta_app_description: "Memory Survival is a real-time puzzle about fitting incoming processes " \
+        "into contiguous memory. Read every lifetime, plan where gaps will open, and " \
+        "keep enough free space in a row to survive the next storm.",
+      beta_app_review_info: {
+        contact_email: required_env("BETA_FEEDBACK_EMAIL"),
+        contact_first_name: "Mark",
+        contact_last_name: "Nelson",
+        contact_phone: required_env("BETA_CONTACT_PHONE"),
+        notes: "No account required — sign-in via Game Center is optional and never blocks play. " \
+          "The Remove Ads purchase is the only in-app purchase."
+      },
+      changelog: "Automated TestFlight build from CI/CD pipeline"
+    )
+  end
+
+  desc "Push App Store text metadata (and screenshots, if present) via the API — never submits for review"
+  lane :push_appstore_metadata do
+    deliver(
+      api_key: app_store_api_key,
+      app_identifier: "com.memorysurvival.app.ios",
+      metadata_path: File.expand_path("metadata", __dir__),
+      screenshots_path: File.expand_path("screenshots", __dir__),
+      skip_binary_upload: true,
+      skip_app_version_update: true,
+      skip_screenshots: !Dir.exist?(File.expand_path("screenshots", __dir__)),
+      submit_for_review: false,
+      app_review_information: {
+        first_name: "Mark",
+        last_name: "Nelson",
+        phone_number: required_env("BETA_CONTACT_PHONE"),
+        email_address: required_env("BETA_FEEDBACK_EMAIL"),
+        notes: "No account or demo credentials needed — the full game (endless runs, " \
+          "the daily run and all 36 scenarios) is playable with no sign-in. Game " \
+          "Center sign-in is offered but optional and never blocks play. The one " \
+          "in-app purchase, Remove Ads, hides the banner ads."
+      },
+      # precheck's IAP-metadata inspection requires Apple ID/2FA auth, not
+      # API-key auth — this app authenticates with an API key, so precheck's
+      # IAP check must be disabled or it hard-fails regardless of build state.
+      precheck_include_in_app_purchases: false,
+      force: true
+    )
+    UI.success("✅ Metadata/screenshots pushed to App Store Connect (draft, not submitted)")
+  end
+
+  desc "Submit the current App Store Connect build for App Store review — irreversible, human-triggered only. Never called by CI automatically."
+  lane :submit_appstore_for_review do |options|
+    deliver(
+      api_key: app_store_api_key,
+      app_identifier: "com.memorysurvival.app.ios",
+      metadata_path: File.expand_path("metadata", __dir__),
+      screenshots_path: File.expand_path("screenshots", __dir__),
+      skip_binary_upload: true,
+      skip_app_version_update: true,
+      skip_screenshots: !Dir.exist?(File.expand_path("screenshots", __dir__)),
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      app_review_information: {
+        first_name: "Mark",
+        last_name: "Nelson",
+        phone_number: required_env("BETA_CONTACT_PHONE"),
+        email_address: required_env("BETA_FEEDBACK_EMAIL"),
+        notes: "No account or demo credentials needed — the full game (endless runs, " \
+          "the daily run and all 36 scenarios) is playable with no sign-in. Game " \
+          "Center sign-in is offered but optional and never blocks play. The one " \
+          "in-app purchase, Remove Ads, hides the banner ads."
+      },
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        # true: AppServices.initialize (app_services.dart) runs
+        # UmpConsentService.requestConsent before ads load, which shows the
+        # App Tracking Transparency prompt as part of GDPR/UMP consent, so
+        # this app does use IDFA for ad personalization.
+        add_id_info_uses_idfa: true,
+        idfa_use_case: [1, 5],
+        idfa_uses_attribution: false,
+        idfa_uses_third_party_advertising: true,
+        export_compliance_encryption_updated: false,
+        export_compliance_uses_encryption: false
+      },
+      release_notes: {
+        "en-US" => options[:release_notes] || "Bug fixes and performance improvements"
+      }
+    )
+    UI.success("✅ Submitted to App Store review")
+  end
+end

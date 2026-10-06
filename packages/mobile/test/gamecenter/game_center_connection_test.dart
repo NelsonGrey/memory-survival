@@ -4,7 +4,6 @@ import 'package:fake_async/fake_async.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memory_survival/app/app_services.dart';
-import 'package:memory_survival/engine/ruleset.dart';
 import 'package:memory_survival/shell/shell.dart';
 import 'package:memory_survival/gamecenter/connection_gated_progress_service.dart';
 import 'package:memory_survival/gamecenter/fake_game_center_progress_service.dart';
@@ -221,22 +220,14 @@ void main() {
   });
 
   group('GameCenterIds', () {
-    test('each ruleset version has its own leaderboard', () {
+    test('the endless leaderboard ID carries no version', () {
       expect(
-        GameCenterIds.endlessLeaderboardFor(4),
-        'memory_survival_endless_score_v4',
-      );
-      expect(
-        GameCenterIds.endlessLeaderboardFor(4),
-        isNot(GameCenterIds.endlessLeaderboardFor(5)),
-      );
-      expect(
-        GameCenterIds.currentEndlessLeaderboard,
-        endsWith('_v${Ruleset.currentVersion}'),
+        GameCenterIds.leaderboardEndlessScore,
+        'memory_survival_endless_score',
       );
     });
 
-    test('scores go to the current board unless one is named', () async {
+    test('scores go to the endless board unless one is named', () async {
       final inner = FakeGameCenterProgressService();
       final g = ConnectionGatedProgressService(
         inner,
@@ -245,7 +236,7 @@ void main() {
       await g.submitScore(7);
       await g.submitScore(8, leaderboardId: 'custom');
       expect(inner.submittedLeaderboards, [
-        GameCenterIds.currentEndlessLeaderboard,
+        GameCenterIds.leaderboardEndlessScore,
         'custom',
       ]);
     });

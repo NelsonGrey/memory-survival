@@ -1,0 +1,22 @@
+Memory Survival is a real-time puzzle about fitting incoming processes into contiguous memory. Each request has a size and a lifetime. Place it in a run of free cells, read the clocks on every block, and keep enough space in a row to survive. Free space is not enough if it is split into pieces too small to use.
+
+READ THE CLOCKS
+Every running block shows how many ticks it has left, so you can see where gaps are about to open. Waiting requests drain as their deadline nears.
+
+PLAN AHEAD
+See what is arriving next and hold space for it before it lands. Where you place a process decides what space is left, and each option shows the biggest gap you would keep.
+
+SURVIVE THE STORMS
+Pressure waves build, warn, and break. Clear one without a fault for a payout, and each wave brings a new kind of process.
+
+KEEP YOUR RUN CLEAN
+Finishing processes builds a score multiplier. Faults, compaction, a full waiting list, and fragmented memory break it, while tidy placements earn a bonus.
+
+COMPACT IN AN EMERGENCY
+Slide everything together to close the gaps. It takes ticks while requests keep arriving, and it costs points and your multiplier.
+
+• Endless survival, a daily run with a shared seed, and 36 authored scenarios
+• Game Center leaderboard and achievements, optional
+• Nothing relies on color alone: lifetimes, pins, and leaks use numbers and icons
+• Relaxed clock for a slower pace
+• A one-time purchase removes ads

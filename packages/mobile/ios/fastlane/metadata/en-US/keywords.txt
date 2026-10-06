@@ -1,0 +1,1 @@
+memory,allocation,puzzle,fragmentation,compaction,strategy,survival,operating system,computing

@@ -31,7 +31,7 @@ class GamesServicesProgressService implements GameCenterProgressService {
 
   @override
   Future<void> submitScore(int score, {String? leaderboardId}) async {
-    final id = leaderboardId ?? GameCenterIds.currentEndlessLeaderboard;
+    final id = leaderboardId ?? GameCenterIds.leaderboardEndlessScore;
     try {
       await Leaderboards.submitScore(
         score: Score(
@@ -47,7 +47,7 @@ class GamesServicesProgressService implements GameCenterProgressService {
 
   @override
   Future<void> showLeaderboard({String? leaderboardId}) async {
-    final id = leaderboardId ?? GameCenterIds.currentEndlessLeaderboard;
+    final id = leaderboardId ?? GameCenterIds.leaderboardEndlessScore;
     try {
       await Leaderboards.showLeaderboards(
         iOSLeaderboardID: id,

@@ -60,12 +60,12 @@ Privacy Policy URL, below.
    — enable Game Center, then create these records (IDs must match
    `lib/gamecenter/game_center_progress_service.dart`'s `GameCenterIds`
    exactly — the code references them by ID, nothing here is auto-created):
-   - **Leaderboard** (Classic, higher score is better): one per ruleset
-     version, ID `memory_survival_endless_score_v<N>` (currently
-     `memory_survival_endless_score_v5`, see `Ruleset.currentVersion`) —
-     endless survival score. Scores earned under different rules never share
-     a board, so **create a new leaderboard each time `Ruleset.currentVersion`
-     is bumped** (before shipping that build).
+   - **Leaderboard** (Classic, higher score is better): ID
+     `memory_survival_endless_score` — endless survival score. One board for
+     every ruleset version, so a balance change (`Ruleset.currentVersion`)
+     does not start a new board; scores earned under different rules share
+     it. (Each device's local best score and personal bests are still kept
+     per ruleset version.)
    - **Achievements** (three, no ordering requirement):
      - `memory_survival_first_allocation` — place the first process
      - `memory_survival_first_compaction` — use compaction for the first time

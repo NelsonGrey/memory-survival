@@ -56,7 +56,7 @@ tap-only) are in:
 - **36 authored scenarios** in four chapters, each with survive / tidy / clean
   objectives, checked solvable by scripted players (`lib/engine/bots.dart`).
 - **Daily run** (shared seed), personal bests (clean streak, biggest rescue,
-  most waves), a leaderboard per ruleset version, and cosmetic palette
+  most waves), a Game Center leaderboard, and cosmetic palette
   unlocks earned through mastery.
 
 **Not built yet:** Android Play Games Services and gameplay analytics. The

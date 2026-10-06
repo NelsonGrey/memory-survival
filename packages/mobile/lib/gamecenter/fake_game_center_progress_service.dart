@@ -26,7 +26,7 @@ class FakeGameCenterProgressService implements GameCenterProgressService {
   Future<void> submitScore(int score, {String? leaderboardId}) async {
     submittedScores.add(score);
     submittedLeaderboards.add(
-      leaderboardId ?? GameCenterIds.currentEndlessLeaderboard,
+      leaderboardId ?? GameCenterIds.leaderboardEndlessScore,
     );
   }
 

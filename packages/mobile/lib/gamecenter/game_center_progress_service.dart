@@ -1,24 +1,12 @@
-import '../engine/ruleset.dart';
-
 /// Achievement/leaderboard/cloud-save IDs. These have to match records
 /// created in App Store Connect's Game Center configuration exactly — see
 /// docs/STORE_SETUP.md for the manual setup this list drives.
 class GameCenterIds {
   const GameCenterIds._();
 
-  /// Endless survival score (MAS-BR-016). The record created in App Store
-  /// Connect carries the ruleset version as a suffix; see
-  /// [endlessLeaderboardFor].
+  /// Endless survival score (MAS-BR-016): one board, whatever the ruleset
+  /// version.
   static const leaderboardEndlessScore = 'memory_survival_endless_score';
-
-  /// One leaderboard per ruleset version, so a balance change starts a fresh
-  /// board instead of mixing scores earned under different rules.
-  static String endlessLeaderboardFor(int rulesetVersion) =>
-      '${leaderboardEndlessScore}_v$rulesetVersion';
-
-  /// The board for the rules this build plays.
-  static String get currentEndlessLeaderboard =>
-      endlessLeaderboardFor(Ruleset.currentVersion);
 
   static const achievementFirstAllocation = 'memory_survival_first_allocation';
   static const achievementFirstCompaction = 'memory_survival_first_compaction';
@@ -42,7 +30,7 @@ abstract class GameCenterProgressService {
   Future<void> unlockAchievement(String id);
 
   /// Submits [score] to [leaderboardId], defaulting to this build's endless
-  /// board ([GameCenterIds.currentEndlessLeaderboard]).
+  /// board ([GameCenterIds.leaderboardEndlessScore]).
   Future<void> submitScore(int score, {String? leaderboardId});
   Future<void> showLeaderboard({String? leaderboardId});
   Future<void> showAchievements();

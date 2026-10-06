@@ -296,7 +296,7 @@ void main() {
       final score = services.bestScore.value;
       expect(lastProgress!.submittedScores, [score]);
       expect(lastProgress!.submittedLeaderboards, [
-        'memory_survival_endless_score_v${Ruleset.currentVersion}',
+        'memory_survival_endless_score',
       ]);
       await tester.pumpWidget(const SizedBox());
     });

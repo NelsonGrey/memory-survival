@@ -1,0 +1,146 @@
+name: iOS Mobile Release
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Release mode
+        required: true
+        type: choice
+        default: testflight
+        options:
+          - build_only
+          - testflight
+          - appstore
+          - appstore_metadata
+          - appstore_submit
+      skip_tests:
+        description: Skip mobile tests
+        required: false
+        default: false
+        type: boolean
+      beta_group_name:
+        description: TestFlight beta group
+        required: false
+        default: Internal Testers
+        type: string
+
+jobs:
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    timeout-minutes: 90
+    environment:
+      # appstore_submit is the one genuinely irreversible action here (a
+      # real App Review submission), so it alone sits behind the gated
+      # ios-appstore environment (required reviewer in repo settings).
+      # build_only/testflight/appstore/appstore_metadata build or push
+      # metadata/TestFlight builds and are safe to run repeatedly, so they
+      # stay on the ungated ios-testflight environment. Same split as
+      # Intercept Echo's and wishlist-wizard's ios-mobile-release.yml.
+      name: ${{ inputs.release_type == 'appstore_submit' && 'ios-appstore' || 'ios-testflight' }}
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+      FASTLANE_APPLE_ID: ${{ secrets.FASTLANE_APPLE_ID }}
+      FASTLANE_ITC_TEAM_ID: ${{ secrets.FASTLANE_ITC_TEAM_ID }}
+      FASTLANE_TEAM_ID: ${{ secrets.FASTLANE_TEAM_ID }}
+      BETA_CONTACT_PHONE: ${{ secrets.BETA_CONTACT_PHONE }}
+      BETA_FEEDBACK_EMAIL: ${{ secrets.BETA_FEEDBACK_EMAIL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Select Xcode Version
+        run: |
+          # shellcheck disable=SC2010
+          LATEST=$(ls /Applications/ | grep -E "^Xcode_2[6-9]\.[0-9]+\.app$|^Xcode_[3-9][0-9]\.[0-9]+\.app$" | sort -t_ -k2 -V | tail -1)
+          if [ -n "$LATEST" ]; then
+            sudo xcode-select -s "/Applications/${LATEST}"
+            echo "Selected $LATEST"
+          else
+            echo "No Xcode 26+ found; using default $(xcode-select -p)"
+          fi
+          xcodebuild -version
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: packages/mobile/ios
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+
+      - name: Install Flutter dependencies
+        run: |
+          cd packages/mobile
+          flutter pub get
+
+      - name: Run mobile tests
+        if: ${{ !inputs.skip_tests }}
+        run: |
+          cd packages/mobile
+          flutter analyze
+          flutter test
+
+      - name: Build or release iOS app
+        run: |
+          set -euo pipefail
+
+          cd packages/mobile/ios
+          case "${{ inputs.release_type }}" in
+            build_only)
+              bundle exec fastlane build_only
+              ;;
+            testflight)
+              export BETA_GROUP_NAME="${{ inputs.beta_group_name || 'Internal Testers' }}"
+              bundle exec fastlane beta
+              ;;
+            appstore)
+              bundle exec fastlane build_appstore
+              ;;
+            appstore_metadata)
+              # Metadata/screenshots only via the API — no build, no signing,
+              # and never submits for review.
+              bundle exec fastlane push_appstore_metadata
+              ;;
+            appstore_submit)
+              # Submits the current App Store Connect build for human
+              # review. Irreversible on Apple's side once accepted — only
+              # reachable via an explicit workflow_dispatch choice, gated
+              # by the ios-appstore environment's required reviewer.
+              bundle exec fastlane submit_appstore_for_review
+              ;;
+            *)
+              echo "❌ Unknown release type: ${{ inputs.release_type }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Upload iOS build artifact
+        if: ${{ inputs.release_type == 'build_only' || inputs.release_type == 'appstore' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-${{ inputs.release_type }}
+          path: |
+            build/ios/ipa/
+            packages/mobile/build/ios/iphoneos/
+          if-no-files-found: warn
+
+      - name: Cleanup temporary auth files
+        if: always()
+        run: rm -rf "$HOME/.private_keys" || true

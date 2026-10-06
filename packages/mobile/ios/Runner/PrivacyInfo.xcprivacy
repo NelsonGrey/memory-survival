@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The app asks for App Tracking Transparency consent (via Google's UMP
+	     flow) and uses the advertising identifier for ad personalization.
+	     The ad SDKs' own manifests list their tracking domains and the data
+	     they collect; this file covers the app itself, which collects nothing
+	     of its own and calls no required-reason APIs directly. -->
+	<key>NSPrivacyTracking</key>
+	<true/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>
