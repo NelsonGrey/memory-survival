@@ -33,7 +33,7 @@ dependencies:
 
   # Ads, consent, the ad-removal purchase and Game Center sign-in (lib/shell/).
   google_mobile_ads: ^9.0.0
-  in_app_purchase: ^3.3.0
+  in_app_purchase: ^3.3.1
 
   # Sign-in, leaderboard, achievement and cloud-save calls (lib/shell/auth/,
   # lib/gamecenter/).
