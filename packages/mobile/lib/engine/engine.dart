@@ -2,6 +2,7 @@
 /// and testable without a UI (TRD section 6).
 library;
 
+export 'difficulty.dart';
 export 'generator.dart';
 export 'memory_engine.dart';
 export 'model.dart';

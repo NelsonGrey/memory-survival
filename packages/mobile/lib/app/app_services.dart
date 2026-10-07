@@ -3,6 +3,7 @@ import 'dart:io';
 import '../shell/shell.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
+import '../engine/engine.dart';
 import '../gamecenter/connection_gated_progress_service.dart';
 import '../gamecenter/fake_game_center_progress_service.dart';
 import '../gamecenter/game_center_connection.dart';
@@ -10,6 +11,7 @@ import '../gamecenter/game_center_progress_service.dart';
 import '../gamecenter/games_services_progress_service.dart';
 import '../settings/best_score.dart';
 import '../settings/daily_challenge.dart';
+import '../settings/difficulty_setting.dart';
 import '../settings/personal_bests.dart';
 import '../settings/scenario_progress.dart';
 import '../settings/suggestions_setting.dart';
@@ -43,6 +45,7 @@ class AppServices {
     GameCenterConnection? connection,
     ThemeController? theme,
     RelaxedClockSetting? relaxedClock,
+    DifficultySetting? difficulty,
     BestScore? bestScore,
     PersonalBests? personalBests,
     DailyChallenge? daily,
@@ -52,6 +55,7 @@ class AppServices {
     UrlOpener? openUrl,
   }) : theme = theme ?? ThemeController(),
        relaxedClock = relaxedClock ?? RelaxedClockSetting(),
+       difficulty = difficulty ?? DifficultySetting(),
        bestScore = bestScore ?? BestScore(),
        personalBests = personalBests ?? PersonalBests(),
        daily = daily ?? DailyChallenge(),
@@ -82,9 +86,12 @@ class AppServices {
     // re-sending is harmless.
     this.connection.onConnected = () async {
       await this.progress.flushEarned();
-      final best = this.bestScore.value;
+      final best = this.bestScore.bestFor(Difficulty.normal);
       if (best > 0) await this.progress.submitScore(best);
     };
+    this.difficulty.addListener(
+      () => this.bestScore.select(this.difficulty.value),
+    );
   }
 
   final ConsentService consent;
@@ -127,7 +134,10 @@ class AppServices {
   /// Accessibility: doubles simulation ticks when on.
   final RelaxedClockSetting relaxedClock;
 
-  /// Best endless score on this device, per ruleset version.
+  /// Endless-mode difficulty, read when a run starts.
+  final DifficultySetting difficulty;
+
+  /// Best endless score on this device, per difficulty and ruleset version.
   final BestScore bestScore;
 
   /// Longest streak, largest rescue and most waves, per ruleset version.
@@ -156,7 +166,9 @@ class AppServices {
 
     await theme.load();
     await relaxedClock.load();
+    await difficulty.load();
     await bestScore.load();
+    bestScore.select(difficulty.value);
     await personalBests.load();
     await daily.load();
     await scenarioProgress.load();

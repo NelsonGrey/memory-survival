@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memory_survival/engine/engine.dart';
+import 'package:memory_survival/settings/best_score.dart';
 import 'package:memory_survival/settings/daily_challenge.dart';
+import 'package:memory_survival/settings/difficulty_setting.dart';
 import 'package:memory_survival/settings/personal_bests.dart';
 import 'package:memory_survival/settings/scenario_progress.dart';
 import 'package:memory_survival/settings/suggestions_setting.dart';
@@ -202,5 +204,57 @@ void main() {
         isTrue,
       );
     });
+  });
+
+  group('Difficulty', () {
+    test('presets scale forgiveness and Normal is the reference', () {
+      final e = Difficulty.easy.rules;
+      final n = Difficulty.normal.rules;
+      final h = Difficulty.hard.rules;
+      expect(n.lives, const Ruleset().lives);
+      expect(n.version, Ruleset.currentVersion);
+      expect(e.lives, greaterThan(n.lives));
+      expect(n.lives, greaterThan(h.lives));
+      expect(e.requestDeadline, greaterThan(n.requestDeadline));
+      expect(n.requestDeadline, greaterThan(h.requestDeadline));
+      expect(e.arrivalMaxPerMille, lessThan(h.arrivalMaxPerMille));
+      expect(
+        [
+          for (final d in Difficulty.values)
+            if (d.ranked) d,
+        ],
+        [Difficulty.normal],
+      );
+    });
+
+    test('setting persists and ignores unknown values', () async {
+      final s = DifficultySetting();
+      await s.set(Difficulty.hard);
+      final again = DifficultySetting();
+      await again.load();
+      expect(again.value, Difficulty.hard);
+      SharedPreferences.setMockInitialValues({'gameplay.difficulty': 'bogus'});
+      await again.load();
+      expect(again.value, Difficulty.normal);
+    });
+
+    test(
+      'best scores are kept per difficulty; Normal keeps the old key',
+      () async {
+        SharedPreferences.setMockInitialValues({'best.score.v5': 70});
+        final b = BestScore();
+        await b.load();
+        expect(b.value, 70);
+        expect(await b.submit(90, difficulty: Difficulty.hard), isTrue);
+        expect(b.value, 70, reason: 'selected difficulty is still Normal');
+        b.select(Difficulty.hard);
+        expect(b.value, 90);
+        final again = BestScore();
+        await again.load();
+        expect(again.bestFor(Difficulty.hard), 90);
+        expect(again.bestFor(Difficulty.normal), 70);
+        expect(again.bestFor(Difficulty.easy), 0);
+      },
+    );
   });
 }

@@ -24,6 +24,8 @@ void main(List<String> args) {
       stormRampPerMille: 40,
     ),
     'default (v${Ruleset.currentVersion})': const Ruleset(),
+    for (final d in [Difficulty.easy, Difficulty.hard])
+      'difficulty ${d.label}': d.rules,
   };
   final bots = [humanCareful, humanCasual, humanSlow, tidyCompact];
   for (final entry in variants.entries) {

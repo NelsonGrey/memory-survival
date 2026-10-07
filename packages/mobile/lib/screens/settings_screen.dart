@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import '../shell/shell.dart';
 
 import '../app/app_services.dart';
+import '../engine/engine.dart';
 import '../gamecenter/game_center_connection.dart';
 import '../settings/unlocks.dart';
 import '../theme/game_theme.dart';
 import 'ad_top_scaffold.dart';
 
-/// Settings: the gameplay palette (Appearance), Game Center, the ad-removal
-/// purchase (Purchases), and the relaxed clock (Accessibility). A
-/// non-gameplay screen, so it carries the banner like every other menu
-/// (MAS-BR-015).
+/// Settings: the gameplay palette (Appearance), Difficulty, gameplay assists,
+/// Game Center, the ad-removal purchase (Purchases), the relaxed clock
+/// (Accessibility) and Legal links. A non-gameplay screen, so it carries the
+/// banner like every other menu (MAS-BR-015).
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key, required this.services});
 
@@ -27,6 +28,7 @@ class SettingsScreen extends StatelessWidget {
         listenable: Listenable.merge([
           services.theme,
           services.relaxedClock,
+          services.difficulty,
           services.suggestions,
           services.personalBests,
           services.scenarioProgress,
@@ -36,6 +38,39 @@ class SettingsScreen extends StatelessWidget {
           children: [
             const _SectionHeader('Appearance'),
             for (final id in gameThemeOrder) _paletteTile(context, id),
+            const SizedBox(height: 16),
+            const _SectionHeader('Difficulty'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SegmentedButton<Difficulty>(
+                segments: [
+                  for (final d in Difficulty.values)
+                    ButtonSegment(value: d, label: Text(d.label)),
+                ],
+                selected: {services.difficulty.value},
+                onSelectionChanged: (s) => services.difficulty.set(s.first),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                '${services.difficulty.value.blurb}. Applies to the next '
+                'endless run; scores are kept per difficulty. Easy runs '
+                "don't count toward records, and only Normal scores reach "
+                'the leaderboard.',
+              ),
+            ),
+            const SizedBox(height: 16),
+            const _SectionHeader('Gameplay assists'),
+            SwitchListTile(
+              title: const Text('Suggested placement'),
+              subtitle: const Text(
+                'Adds a one-tap button that places a request in the tidiest '
+                'spot. Those requests earn no clean-run multiplier.',
+              ),
+              value: services.suggestions.value,
+              onChanged: services.suggestions.set,
+            ),
             const SizedBox(height: 16),
             if (services.connection.supported) ...[
               const _SectionHeader('Game Center'),
@@ -54,17 +89,6 @@ class SettingsScreen extends StatelessWidget {
               subtitle: const Text('Each clock tick lasts twice as long'),
               value: services.relaxedClock.value,
               onChanged: services.relaxedClock.set,
-            ),
-            const SizedBox(height: 16),
-            const _SectionHeader('Gameplay assists'),
-            SwitchListTile(
-              title: const Text('Suggested placement'),
-              subtitle: const Text(
-                'Adds a one-tap button that places a request in the tidiest '
-                'spot. Those requests earn no clean-run multiplier.',
-              ),
-              value: services.suggestions.value,
-              onChanged: services.suggestions.set,
             ),
             const SizedBox(height: 16),
             const _SectionHeader('Legal'),

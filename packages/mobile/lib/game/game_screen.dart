@@ -36,7 +36,7 @@ class GameScreen extends StatefulWidget {
     super.key,
     required this.services,
     this.seed,
-    this.rules = const Ruleset(),
+    this.rules,
     this.autoTick = true,
     this.mode = RunMode.endless,
     this.scenario,
@@ -47,7 +47,10 @@ class GameScreen extends StatefulWidget {
   /// Fixed seed for reproducible runs and tests; random when null. Daily and
   /// scenario runs use their own seeds.
   final int? seed;
-  final Ruleset rules;
+
+  /// Overrides the rules for a test. Null: endless runs use the player's
+  /// difficulty, daily runs the standard rules.
+  final Ruleset? rules;
 
   /// Tests turn this off and step the controller by hand.
   final bool autoTick;
@@ -71,7 +74,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   AppServices get services => widget.services;
   Scenario? get _scenario => widget.scenario;
-  Ruleset get _rules => _scenario?.rules ?? widget.rules;
+
+  /// Fixed when a run starts, so changing the difficulty in Settings (opened
+  /// over a paused run) only affects the next run.
+  late Ruleset _rules;
+  late Difficulty _difficulty;
 
   @override
   void initState() {
@@ -94,6 +101,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _newRun() {
+    _difficulty = widget.mode == RunMode.endless
+        ? services.difficulty.value
+        : Difficulty.normal;
+    _rules =
+        _scenario?.rules ??
+        widget.rules ??
+        (widget.mode == RunMode.endless ? _difficulty.rules : const Ruleset());
     _game = GameController(
       rules: _rules,
       seed: _seedForRun(),
@@ -157,13 +171,21 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   /// Records the finished run once: best scores, personal records, scenario
   /// stars and the leaderboard, depending on the mode.
   Future<void> _finishRun(MemoryState s) async {
-    final records = await services.personalBests.submit(s.score);
+    // Easy runs are too forgiving to count toward records and their unlocks.
+    final countsForRecords =
+        widget.mode != RunMode.endless || _difficulty != Difficulty.easy;
+    final records = countsForRecords
+        ? await services.personalBests.submit(s.score)
+        : const NewRecords();
     var newBest = false;
     var fresh = const <Objective>{};
     switch (widget.mode) {
       case RunMode.endless:
-        newBest = await services.bestScore.submit(s.score.points);
-        services.progress.submitScore(s.score.points);
+        newBest = await services.bestScore.submit(
+          s.score.points,
+          difficulty: _difficulty,
+        );
+        if (_difficulty.ranked) services.progress.submitScore(s.score.points);
       case RunMode.daily:
         newBest = await services.daily.submit(s.score.points);
       case RunMode.scenario:
@@ -348,7 +370,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final int best;
     switch (widget.mode) {
       case RunMode.endless:
-        best = services.bestScore.value;
+        best = services.bestScore.bestFor(_difficulty);
       case RunMode.daily:
         best = services.daily.todaysBest ?? 0;
       case RunMode.scenario:
