@@ -21,3 +21,27 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+
+  integration:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: packages/mobile
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: stable
+      - run: flutter pub get
+      - name: Boot an iOS simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          devices = json.load(sys.stdin)['devices']
+          print(next(d['udid'] for runtime, ds in devices.items() if 'iOS' in runtime for d in ds if 'iPhone' in d['name']))
+          ")
+          xcrun simctl boot "$UDID"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+      - name: Run the app smoke test
+        run: flutter test integration_test/app_smoke_test.dart -d "$SIM_UDID"
