@@ -46,12 +46,14 @@ Safe Corridor”**, rebuilt as a vector-first identity (see
 | Sora, outlined into the wordmark and social cards | `marketing/tools/Sora-OFL.txt` | Google Fonts variable font (github.com/google/fonts, ofl/sora), retrieved 2026-10-05 and instanced at 400/600/700. Type is converted to outline paths; the font file is not redistributed here | SIL Open Font License 1.1 | 2026-10-05 |
 | In-app brand images | `packages/mobile/assets/branding/*`, iOS `LaunchImage.imageset` | Rasterised from the S2 vector masters | First-party | 2026-10-05 |
 | Design-history concepts | `marketing/concepts/logo-round-2`, `-3-d`, `-4-survival` (includes `s2-shrinking-corridor.png`) | AI-generated exploration images (OpenAI built-in image generation) | Reference only; not shipped in the app, store listing or social assets | 2026-10-05 |
-| Campaign key art | `marketing/assets/campaign/key-art-master.png` | Generated with OpenAI's built-in image-generation tool; no input image or third-party logo | First-party output; AI-generation disclosure retained. No longer used in social exports; still shown on the pre-release website hero | 2026-10-05 |
+| Campaign headers and gameplay social assets | `marketing/assets/headers/`, `marketing/assets/social/gameplay-*.png`, `marketing/assets/campaign/key-art-master.png` | Original S2 identity combined with an authentic iOS simulator capture by `marketing/tools/build_campaign_assets.py` | First-party; gameplay is an actual deterministic app capture | 2026-10-07 |
+| Archived campaign key art | `marketing/assets/archive/pre-final-gameplay/key-art-master-ai.png` | Generated with OpenAI's built-in image-generation tool; no input image or third-party logo | Historical reference only; not an active marketing export | 2026-10-05 |
 | Previous working identity | `marketing/assets/archive/pre-s2/*` | Original vector construction | Superseded; kept as history | 2026-10-05 |
 
 **AI-generated imagery that remains:** the concept rounds, the S2 reference
-image, and `key-art-master.png` (website hero only). Nothing in the app icon,
-wordmark, favicons, store icon or social exports is AI-generated.
+image, and the archived pre-final campaign key art. Nothing in the active app
+icon, wordmark, favicons, store icon, headers, campaign key art, or social
+exports is AI-generated.
 
 **Title clearance:** “Memory Survival” has not been formally cleared
 (trademark, store, domain and common-law search still required before store

@@ -63,7 +63,12 @@ Set in **Sora Bold**, two lines, tracked −2%: **MEMORY** in near white `#EEF2F
 
 Campaign artwork should show ordered cells, contiguous blocks, empty gaps, and one controlled fault state. Avoid binary rain, motherboard photography, server racks, humanoid AI imagery, and neon cyberpunk clutter.
 
-The logo, wordmark and social layouts are original vector work. The earlier campaign key art (`assets/campaign/key-art-master.png`) was generated with OpenAI's built-in image-generation tool; it is no longer used in social exports but still appears on the website hero. Treat it as AI-generated and retain that provenance. The S2 concept reference image is also AI-generated and was only a visual guide.
+The logo, wordmark and original social layouts are vector work. Current header,
+campaign and gameplay-led social assets pair that identity with an authentic
+iOS simulator capture. The earlier AI-generated campaign key art is archived at
+`assets/archive/pre-final-gameplay/key-art-master-ai.png` for provenance and is
+not an active marketing export. The S2 concept reference image is also
+AI-generated and was only a visual guide.
 
 ## Accuracy boundary
 

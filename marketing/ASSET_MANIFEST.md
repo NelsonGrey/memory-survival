@@ -1,7 +1,8 @@
 # Asset Manifest
 
 **Identity:** S2 “Shrinking Safe Corridor” (selected 2026-10-05; see `concepts/logo-round-4-survival/s2-shrinking-corridor.png` for the AI-generated reference it was reconstructed from).
-**Rebuild everything:** `python3 tools/build_identity.py --font "Sora[wght].ttf" --out assets` (needs `fonttools`, `rsvg-convert`). All SVG masters and PNG exports below are produced by that script.
+**Identity rebuild:** `python3 tools/build_identity.py --font "Sora[wght].ttf" --out assets` (needs `fonttools`, `rsvg-convert`).
+**Campaign rebuild:** from the repository root, run `python3 marketing/tools/build_campaign_assets.py` (needs Pillow and the captured iOS screenshots under `packages/mobile/output/app-store-screenshots/raw/`).
 
 ## Vector masters (`assets/source/`) — edit these, never the PNGs
 
@@ -26,12 +27,38 @@ Type is converted to outlines from Sora Bold/SemiBold/Regular, so no SVG needs t
 - `favicon-32x32.png`, `favicon-16x16.png` — from the rounded mark
 - `s2-contact-sheet.png` — the icon at 1024 / 128 / 64 / 32 / 16 px, on dark and light
 
-## Social exports (`assets/social/`) — vector layouts, no raster artwork
+## Header exports (`assets/headers/`) — finalized identity + authentic gameplay
+
+- `apple-store-feature-5244x2950.png` — Apple Store promotional header
+- `apple-store-feature-3840x1646.png` — Apple Store wide promotional header
+- `website-hero.png` — 2400 × 1200
+- `x-header.png` — 1500 × 500
+- `facebook-cover.png` — 1640 × 624
+- `linkedin-cover.png` — 1128 × 191
+- `youtube-channel-banner.png` — 2560 × 1440; essential content stays within the central 1546 × 423 safe area
+- `press-header.png` — 2400 × 800
+- `email-header.png` — 1200 × 400
+
+These are opaque RGB PNGs built from the production identity and the authentic
+iPhone gameplay capture. They contain no generated gameplay or third-party
+artwork.
+
+## Social exports (`assets/social/`)
 
 - `og-image.png` 1200 × 630 · `x-landscape.png` 1600 × 900 · `instagram-square.png` 1080 × 1080
 - `story.png` 1080 × 1920 · `linkedin-banner.png` 1128 × 191 · `youtube-banner.png` 2560 × 1440 (content kept inside the 1546 × 423 safe area)
 
 Headline “Every gap is a risk.”, supporting line “A real-time memory allocation puzzle.”, status label “IN DEVELOPMENT”. Text is set from outlined Sora paths, not rendered by an image model.
+
+Gameplay-led exports use the final identity and authentic iPhone capture:
+
+- `gameplay-landscape.png` — 1600 × 900
+- `gameplay-square.png` — 1080 × 1080
+- `gameplay-story.png` — 1080 × 1920
+
+`assets/campaign/final-asset-contact-sheet.png` previews every header and new
+gameplay-led social asset. `assets/campaign/key-art-master.png` is now the
+authentic-gameplay website hero, retained at its stable path for consumers.
 
 ## Native app integration (`packages/mobile`)
 
@@ -41,11 +68,16 @@ Headline “Every gap is a risk.”, supporting line “A real-time memory alloc
 ## Archived and design history (kept, not deleted)
 
 - `assets/archive/pre-s2/` — the previous working identity, sources and social exports.
+- `assets/archive/pre-final-gameplay/key-art-master-ai.png` — the earlier AI-generated campaign key art, retained only for provenance.
 - `concepts/logo-round-2`, `-3-d`, `-4-survival` — concept rounds, including the S2 reference image.
-- `assets/campaign/key-art-master.png` — AI-generated key art, **no longer used by any social export**; the website hero and “Emergency procedure” section still show it.
 
 ## Provenance
 
-Mark, wordmark, icon and social layouts are original vector constructions. The only AI-generated imagery remaining in the repository is the S2 concept reference, the other concept rounds, and `key-art-master.png`. See `docs/ASSET_PROVENANCE.md`. The title “Memory Survival” still requires formal clearance.
+Mark, wordmark, icon and layouts are original constructions. Header and
+gameplay-led social assets use the authentic iOS simulator capture. Historical
+AI-generated exploration is retained only in the concept and archive folders;
+it is not part of the active identity, header, store, or social exports. See
+`docs/ASSET_PROVENANCE.md`. The title “Memory Survival” still requires formal
+clearance.
 
 Press copies: `press/BRAND_GUIDE.md`, `press/SOCIAL_COPY.md`.
