@@ -40,7 +40,7 @@ dependencies:
   games_services: ^5.3.0
 
   # Persists the chosen palette and accessibility settings.
-  shared_preferences: ^2.5.5
+  shared_preferences: ^2.5.6
 
   # Opens the Privacy/Terms/Support pages from Settings.
   url_launcher: ^6.3.2
