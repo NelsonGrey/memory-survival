@@ -133,7 +133,7 @@ jobs:
 
       - name: Upload iOS build artifact
         if: ${{ inputs.release_type == 'build_only' || inputs.release_type == 'appstore' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-release-${{ inputs.release_type }}
           path: |
