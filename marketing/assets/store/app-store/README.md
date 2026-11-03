@@ -7,7 +7,7 @@ entitlement, and no live account, advertising, purchase, or Game Center data.
 - `raw/`: native simulator captures at 1206 x 2622 pixels.
 - `iphone-6.1-6.3/`: App Store upload set at Apple's supported
   1206 x 2622 portrait size.
-- `ios/fastlane/screenshots/en-US/`: mirror of that upload set for Fastlane.
+- `packages/mobile/ios/fastlane/screenshots/en-US/`: mirror of that upload set for Fastlane.
 
 The ten screens cover Home, How to play, Scenarios, Settings, an incoming
 request, active memory, strategic placement, overclock pressure, a paused run,

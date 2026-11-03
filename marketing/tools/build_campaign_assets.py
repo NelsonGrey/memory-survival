@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MARKETING = ROOT / "marketing"
 MOBILE = ROOT / "packages" / "mobile"
 ASSETS = MARKETING / "assets"
-SCREENSHOTS = MOBILE / "output" / "app-store-screenshots" / "raw"
+SCREENSHOTS = ASSETS / "store" / "app-store" / "raw"
 
 GRAPHITE = "#10151C"
 PANEL = "#1B2430"

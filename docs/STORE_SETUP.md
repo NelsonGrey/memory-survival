@@ -57,33 +57,10 @@ Privacy Policy URL, below.
    - Android stays on Google's shared test IDs until an Android AdMob app
      exists (`android/app/src/main/AndroidManifest.xml`).
 5. App Store Connect → Features → Game Center → app `com.memorysurvival.app.ios`
-   — enable Game Center, then create these records (IDs must match
-   `lib/gamecenter/game_center_progress_service.dart`'s `GameCenterIds`
-   exactly — the code references them by ID, nothing here is auto-created):
-   - **Leaderboard** (Classic, higher score is better): ID
-     `memory_survival_endless_score` — endless survival score. One board for
-     every ruleset version, so a balance change (`Ruleset.currentVersion`)
-     does not start a new board; scores earned under different rules share
-     it. (Each device's local best score and personal bests are still kept
-     per ruleset version.)
-   - **Achievements** (three, no ordering requirement):
-     - `memory_survival_first_allocation` — place the first process
-     - `memory_survival_first_compaction` — use compaction for the first time
-     - `memory_survival_campaign_complete` — finish every authored scenario
-   - The game only signs in after the player opts in (first-run prompt,
-     home-screen badge, or Settings > Game Center). Reviewers can play the
-     whole game without it.
-   - Game Center's cloud-saved games (`SaveGame`) have a service layer
-     (`saveCloudProgress` / `loadCloudProgress`) but the game does not use it
-     yet: campaign progress is not synced across devices. No separate
-     configuration is needed when it is wired in.
-   - On every sign-in the app grants achievements earned while disconnected
-     and re-sends this device's best endless score for the current ruleset
-     version.
-   - The `com.apple.developer.game-center` entitlement is already in
-     `ios/Runner/Runner.entitlements` and the Xcode project.
-   - Validate on a real device signed into Game Center in a TestFlight build:
-     Settings → Leaderboard/Achievements should open Game Center's native UI.
+   — enable Game Center and create the leaderboard and achievements. The
+   exact IDs, names, descriptions, points, art and device checklist are in
+   [GAME_CENTER_SETUP.md](GAME_CENTER_SETUP.md); the code references them by
+   ID, nothing is auto-created.
 
 ## Google Play Console
 

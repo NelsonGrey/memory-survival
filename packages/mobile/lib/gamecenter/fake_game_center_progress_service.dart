@@ -1,3 +1,4 @@
+import 'game_center_ids.dart';
 import 'game_center_progress_service.dart';
 
 /// Deterministic [GameCenterProgressService] for tests: records every call

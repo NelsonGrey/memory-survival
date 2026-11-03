@@ -6,7 +6,7 @@ import 'package:memory_survival/game/game_controller.dart';
 import 'package:memory_survival/game/game_screen.dart';
 import 'package:memory_survival/gamecenter/fake_game_center_progress_service.dart';
 import 'package:memory_survival/gamecenter/game_center_connection.dart';
-import 'package:memory_survival/gamecenter/game_center_progress_service.dart';
+import 'package:memory_survival/gamecenter/game_center_ids.dart';
 import 'package:memory_survival/main.dart';
 import 'package:memory_survival/screens/scenario_select_screen.dart';
 import 'package:memory_survival/screens/settings_screen.dart';

@@ -8,7 +8,7 @@ import 'package:memory_survival/shell/shell.dart';
 import 'package:memory_survival/gamecenter/connection_gated_progress_service.dart';
 import 'package:memory_survival/gamecenter/fake_game_center_progress_service.dart';
 import 'package:memory_survival/gamecenter/game_center_connection.dart';
-import 'package:memory_survival/gamecenter/game_center_progress_service.dart';
+import 'package:memory_survival/gamecenter/game_center_ids.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FailingAuth extends FakePlatformGameAuthService {

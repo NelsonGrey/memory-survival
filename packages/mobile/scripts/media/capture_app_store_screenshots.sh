@@ -2,7 +2,7 @@
 set -euo pipefail
 
 device_id="${1:-0880ABCD-F1A1-4AF2-96E9-C1DA26ACDCE7}"
-output_dir="${2:-output/app-store-screenshots/raw}"
+output_dir="${2:-../../marketing/assets/store/app-store/raw}"
 mkdir -p "$output_dir"
 
 flutter test integration_test/app_store_screenshots_test.dart -d "$device_id" 2>&1 |

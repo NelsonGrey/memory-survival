@@ -38,3 +38,6 @@ service-account*.json
 *-service-account*.json
 id_rsa*
 *_log.txt
+
+# Scratch capture/render output (final marketing assets live under marketing/)
+packages/mobile/output/

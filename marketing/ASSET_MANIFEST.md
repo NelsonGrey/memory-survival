@@ -2,7 +2,7 @@
 
 **Identity:** S2 “Shrinking Safe Corridor” (selected 2026-10-05; see `concepts/logo-round-4-survival/s2-shrinking-corridor.png` for the AI-generated reference it was reconstructed from).
 **Identity rebuild:** `python3 tools/build_identity.py --font "Sora[wght].ttf" --out assets` (needs `fonttools`, `rsvg-convert`).
-**Campaign rebuild:** from the repository root, run `python3 marketing/tools/build_campaign_assets.py` (needs Pillow and the captured iOS screenshots under `packages/mobile/output/app-store-screenshots/raw/`).
+**Campaign rebuild:** from the repository root, run `python3 marketing/tools/build_campaign_assets.py` (needs Pillow and the captured iOS screenshots under `marketing/assets/store/app-store/raw/`).
 
 ## Vector masters (`assets/source/`) — edit these, never the PNGs
 
@@ -81,3 +81,11 @@ it is not part of the active identity, header, store, or social exports. See
 clearance.
 
 Press copies: `press/BRAND_GUIDE.md`, `press/SOCIAL_COPY.md`.
+
+## Video (`assets/video/`)
+
+- `memory-survival-gameplay-tour.mp4` — gameplay tour.
+
+## Store media (`assets/store/app-store/`)
+
+See that folder's `README.md`: `raw/` native captures, `iphone-6.1-6.3/` upload set.

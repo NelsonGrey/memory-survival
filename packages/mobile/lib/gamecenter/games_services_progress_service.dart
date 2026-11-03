@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:games_services/games_services.dart';
 
+import 'game_center_ids.dart';
 import 'game_center_progress_service.dart';
 
 /// Real [GameCenterProgressService], backed by Game Center via the

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
 import '../engine/engine.dart';
-import '../gamecenter/game_center_progress_service.dart';
+import '../gamecenter/game_center_ids.dart';
 import '../screens/how_to_play_screen.dart';
 import '../screens/settings_screen.dart';
 import '../settings/personal_bests.dart';
