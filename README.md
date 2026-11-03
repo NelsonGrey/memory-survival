@@ -101,4 +101,4 @@ flutter pub get
 flutter run
 ```
 
-Ads run on Google's public test IDs until this game has its own AdMob app.
+Ads use this game's own AdMob iOS app and units; Android still uses Google's public test IDs until an Android AdMob app exists.

@@ -33,6 +33,19 @@ Future<void> _defaultOpenUrl(Uri url) => url_launcher.launchUrl(
 /// Store Connect (see docs/STORE_SETUP.md).
 const adRemovalProductId = 'memory_survival_remove_ads';
 
+/// This game's own AdMob app and ad units (docs/STORE_SETUP.md). Never reuse
+/// another game's production IDs. The Android values are Google's shared test
+/// IDs — Android testing hasn't resumed yet — so swap those in once an Android
+/// AdMob app exists.
+const _memorySurvivalAdMobConfig = AdMobConfig(
+  androidAppId: 'ca-app-pub-3940256099942544~3347511713',
+  androidBannerId: 'ca-app-pub-3940256099942544/6300978111',
+  androidInterstitialId: 'ca-app-pub-3940256099942544/1033173712',
+  iosAppId: 'ca-app-pub-5198775482699756~7286172968',
+  iosBannerId: 'ca-app-pub-5198775482699756/3211021574',
+  iosInterstitialId: 'ca-app-pub-5198775482699756/3542369074',
+);
+
 /// The app's services (ads, consent, purchases, Game Center, settings),
 /// wired in dependency order by [initialize].
 class AppServices {
@@ -67,10 +80,7 @@ class AppServices {
        entitlement =
            entitlement ??
            IapEntitlementService(adRemovalProductId: adRemovalProductId),
-       // Google's public test IDs until this game has its own AdMob app and
-       // units provisioned (docs/STORE_SETUP.md). Never reuse another game's
-       // production IDs.
-       ads = ads ?? AdMobAdService(AdMobConfig.test()),
+       ads = ads ?? AdMobAdService(_memorySurvivalAdMobConfig),
        auth = auth ?? _defaultAuth(),
        progressBackend = progress ?? _defaultProgress() {
     this.connection =

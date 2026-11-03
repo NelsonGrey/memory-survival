@@ -61,11 +61,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!-- AdMob App ID. This is Google's shared public TEST app ID
-	     (AdMobConfig.test()) — swap for this game's real AdMob app ID once
-	     it exists. See docs/STORE_SETUP.md and lib/app/app_services.dart. -->
+	<!-- AdMob App ID for this game's iOS app. Must match iosAppId in
+	     lib/app/app_services.dart. See docs/STORE_SETUP.md. -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-5198775482699756~7286172968</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>This identifier will be used to deliver personalized ads to you.</string>
 	<!-- Google/AdMob's published SKAdNetwork partner list, for iOS 14+ ad

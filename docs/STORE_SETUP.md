@@ -47,13 +47,13 @@ Privacy Policy URL, below.
    - Price: Tier 3 ($2.99)
    - Validate on a real device in a TestFlight build: tapping "Remove Ads —
      $2.99" in Settings shows the StoreKit purchase sheet at the right price.
-4. AdMob console → create an app for `com.memorysurvival.app.ios` with a banner
-   and an interstitial unit. Until then the game runs on Google's public test
-   IDs (`AdMobConfig.test()` in `lib/app/app_services.dart`, and
-   `GADApplicationIdentifier` in `ios/Runner/Info.plist`). **Never reuse
-   another game's production IDs.** When the real IDs exist:
-   - Replace `AdMobConfig.test()` with a real `AdMobConfig` and update
-     `GADApplicationIdentifier`.
+4. AdMob console → app `com.memorysurvival.app.ios` with a banner
+   (`memory-survival-admob-banner-ios`) and an interstitial unit
+   (`memory-survival-admob-interstitial-ios`). **Created.** The IDs are in
+   `_memorySurvivalAdMobConfig` in `lib/app/app_services.dart`, and the app ID
+   is also `GADApplicationIdentifier` in `ios/Runner/Info.plist`; the two
+   must match. **Never reuse another game's production IDs.**
+   - `AdMobConfig.test()` is still available for development.
    - **UMP consent message**: configure a GDPR/consent message for this
      AdMob app in AdMob → Privacy & messaging — the code already calls
      Google's UMP SDK before ads load, but the form has nothing to show
