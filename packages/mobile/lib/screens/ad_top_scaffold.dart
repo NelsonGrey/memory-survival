@@ -27,7 +27,7 @@ class AdTopScaffold extends StatelessWidget {
           MediaQuery.removePadding(
             context: context,
             removeTop: true,
-            child: AppBar(title: Text(title), toolbarHeight: 44),
+            child: AppBar(title: Text(title), toolbarHeight: 48),
           ),
           Expanded(child: body),
         ],

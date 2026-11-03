@@ -102,6 +102,8 @@ Future<void> showGameCenterPrompt(
   final connect = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
+      // Scrolls instead of overflowing at the largest text sizes.
+      scrollable: true,
       title: const Text('Connect to Game Center?'),
       content: const Text(
         'Post your score to the leaderboard, earn achievements, and keep '

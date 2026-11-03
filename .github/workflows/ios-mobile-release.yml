@@ -97,6 +97,21 @@ jobs:
           flutter analyze
           flutter test
 
+      # Stop before the irreversible step if App Store Connect is not ready:
+      # missing listing text, screenshots, purchase, Game Center records or
+      # an unattached build (packages/mobile/scripts/asc_preflight.py).
+      - name: Set up Python for the pre-submission check
+        if: ${{ inputs.release_type == 'appstore_submit' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pre-submission check of App Store Connect
+        if: ${{ inputs.release_type == 'appstore_submit' }}
+        run: |
+          python3 -m pip install --quiet pyjwt cryptography
+          python3 packages/mobile/scripts/asc_preflight.py --require-attached-build
+
       - name: Build or release iOS app
         run: |
           set -euo pipefail

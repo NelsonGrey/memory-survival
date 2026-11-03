@@ -182,6 +182,11 @@ ThemeData materialThemeFor(GameThemePalette p) {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
+    // Text buttons default to the (blue) primary color, which is under 4.5:1
+    // on the dark page; use the body text color so every palette passes.
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: p.textPrimary),
+    ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: p.textPrimary,
