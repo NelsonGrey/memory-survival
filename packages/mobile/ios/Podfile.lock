@@ -3,11 +3,11 @@ PODS:
   - games_services (5.0.1):
     - Flutter
     - FlutterMacOS
-  - Google-Mobile-Ads-SDK (13.3.0):
+  - Google-Mobile-Ads-SDK (13.11.0):
     - GoogleUserMessagingPlatform (>= 1.1)
-  - google_mobile_ads (9.0.0):
+  - google_mobile_ads (9.2.0):
     - Flutter
-    - Google-Mobile-Ads-SDK (~> 13.3.0)
+    - Google-Mobile-Ads-SDK (~> 13.11)
     - webview_flutter_wkwebview
   - GoogleUserMessagingPlatform (3.1.0)
   - in_app_purchase_storekit (0.0.1):
@@ -60,8 +60,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
   games_services: 76bef7d2e685bb605e2d16a18b255462ea1aaeb2
-  Google-Mobile-Ads-SDK: 7692126a35ed859f20635af281c50a2162be8bea
-  google_mobile_ads: e0c300fcd472c3fa5a00d6cca8b0c65bbbb15faf
+  Google-Mobile-Ads-SDK: 09d0868abe43b9f851b7b340a245679f0eafc96c
+  google_mobile_ads: c8f164ff415b8440e50b0102508d148c7fbea07f
   GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
   in_app_purchase_storekit: 2342c0a5da86593124d08dd13d920f39a52b273a
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573

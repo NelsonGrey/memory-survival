@@ -61,13 +61,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
 	<!-- AdMob App ID. This is Google's shared public TEST app ID
 	     (AdMobConfig.test()) — swap for this game's real AdMob app ID once
 	     it exists. See docs/STORE_SETUP.md and lib/app/app_services.dart. -->

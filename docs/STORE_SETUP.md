@@ -22,6 +22,8 @@ Privacy Policy URL, below.
 
 ## Apple App Store Connect
 
+0. **iPhone only.** The Xcode project targets iPhone (`TARGETED_DEVICE_FAMILY = 1`),
+   so App Store Connect asks for iPhone screenshots only.
 1. Developer portal → Identifiers → register bundle ID: `com.memorysurvival.app.ios` — **not done yet**
 2. App Store Connect → Apps → **+** → New App
    - Platform: iOS
@@ -34,6 +36,12 @@ Privacy Policy URL, below.
 3. App Store Connect → In-App Purchases → **+** → Non-Consumable (matches
    Modulo Squares' ad-removal product)
    - Reference name: Remove Ads
+   - Display name (shown to players): Unlock Premium (matches Modulo Squares)
+   - Description: Remove all ads forever with one simple purchase
+   - Promotional image: `marketing/assets/store/app-store/in-app-purchase/remove-ads-1024x1024.png`
+     (1024×1024, opaque RGB; built by `marketing/tools/build_campaign_assets.py`)
+   - Review screenshot: the Settings purchase section, e.g.
+     `marketing/assets/store/app-store/raw/04-settings.png`
    - Product ID: `memory_survival_remove_ads` (must match `adRemovalProductId`
      in `lib/app/app_services.dart`)
    - Price: Tier 3 ($2.99)

@@ -196,6 +196,52 @@ def contact_sheet() -> None:
     sheet.save(ASSETS / "campaign" / "final-asset-contact-sheet.png", optimize=True)
 
 
+def tracked(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str,
+            fnt: ImageFont.FreeTypeFont, fill: str, tracking: int) -> None:
+    """Centre `text` on x with extra letter spacing (anchored at y)."""
+    widths = [draw.textlength(ch, font=fnt) for ch in text]
+    total = sum(widths) + tracking * (len(text) - 1)
+    x = xy[0] - total / 2
+    for ch, w in zip(text, widths):
+        draw.text((x, xy[1]), ch, font=fnt, fill=fill, anchor="ls")
+        x += w + tracking
+
+
+def iap_image() -> None:
+    """1024 x 1024 promotional image for the Remove Ads in-app purchase
+    (shown in App Store Connect as "Unlock Premium"): a struck-through ad
+    banner above a clean run of memory."""
+    size = 1024
+    image = background((size, size))
+    draw = ImageDraw.Draw(image)
+
+    # The ad banner, crossed out.
+    draw.rounded_rectangle((192, 120, 832, 290), 28, fill=PANEL, outline=STEEL, width=5)
+    draw.text((512, 205), "AD", font=font(BOLD, 84), fill=STEEL, anchor="mm")
+    draw.line((236, 330, 788, 80), fill=CORAL, width=22)
+    draw.ellipse((226, 320, 246, 340), fill=CORAL)
+    draw.ellipse((778, 70, 798, 90), fill=CORAL)
+
+    # A clean run of memory below it.
+    cell, gap = 96, 16
+    start = (size - (8 * cell + 7 * gap)) // 2
+    for i in range(8):
+        x = start + i * (cell + gap)
+        if i < 5:
+            draw.rounded_rectangle((x, 390, x + cell, 390 + cell), 14, fill=BLUE)
+        else:
+            draw.rounded_rectangle((x + 2, 392, x + cell - 2, 390 + cell - 2), 12,
+                                   fill=PANEL, outline="#7D8DA3", width=4)
+
+    draw.text((512, 650), "UNLOCK PREMIUM", font=font(BOLD, 78), fill=WHITE, anchor="mm")
+    tracked(draw, (512, 760), "AD-FREE", font(BOLD, 44), MINT, 14)
+    tracked(draw, (512, 840), "ONE-TIME UPGRADE", font(REGULAR, 30), STEEL, 8)
+
+    path = ASSETS / "store" / "app-store" / "in-app-purchase" / "remove-ads-1024x1024.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    image.convert("RGB").save(path, optimize=True)
+
+
 def main() -> None:
     required = (WORDMARK, MARK, GAMEPLAY, BOLD, REGULAR)
     missing = [str(path) for path in required if not path.exists()]
@@ -220,6 +266,7 @@ def main() -> None:
     social("gameplay-square", (1080, 1080), portrait=True)
     social("gameplay-story", (1080, 1920), portrait=True)
     contact_sheet()
+    iap_image()
 
 
 if __name__ == "__main__":

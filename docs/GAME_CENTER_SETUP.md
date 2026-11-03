@@ -9,6 +9,11 @@ Echo and Modulo Squares.
 App Store Connect → app `com.memorysurvival.app.ios` → Features → Game Center →
 enable Game Center, then create:
 
+**Status:** created in App Store Connect (reported by the owner, 2026-11-03). The
+values below are what the code and this document expect; where App Store
+Connect differs on titles or descriptions, App Store Connect is authoritative,
+but the IDs must match exactly. The real-device check at the end is still open.
+
 ## Leaderboard
 
 | Field | Value |

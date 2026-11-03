@@ -6,7 +6,9 @@ entitlement, and no live account, advertising, purchase, or Game Center data.
 
 - `raw/`: native simulator captures at 1206 x 2622 pixels.
 - `iphone-6.1-6.3/`: App Store upload set at Apple's supported
-  1206 x 2622 portrait size.
+  1206 x 2622 portrait size. Flattened to opaque RGB (no alpha
+  channel), which App Store Connect requires. The game is iPhone-only, so there
+  is no iPad set.
 - `packages/mobile/ios/fastlane/screenshots/en-US/`: mirror of that upload set for Fastlane.
 
 The ten screens cover Home, How to play, Scenarios, Settings, an incoming
