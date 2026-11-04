@@ -25,7 +25,7 @@ on:
       beta_group_name:
         description: TestFlight beta group
         required: false
-        default: Internal Testers
+        default: Nelson Grey LLC
         type: string
 
 jobs:
