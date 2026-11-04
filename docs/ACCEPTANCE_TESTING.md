@@ -43,7 +43,7 @@ remains for a person.
 | MAS-BR-013 accessibility | One VoiceOver pass on a device (the automated suite checks labels, targets, contrast and large text, not how it sounds) | |
 | MAS-BR-015 ad placement on device | Playtest with the real ad SDK, free and ad-free (placement rules are automated with fake ads) | |
 | MAS-BR-006, MAS-BR-016 platform services | Game Center sign-in, leaderboard and achievements on a real device and sandbox account (the App Store Connect side is checked by `asc_preflight.py`) | |
-| App Privacy labels, EU trader status, AdMob consent message | Confirm in the App Store Connect and AdMob consoles (not readable through the API) | |
+| App Privacy labels, EU trader status, AdMob consent message | Done (confirmed by the owner, 2026-11-03). Not readable through the API, so re-check in the consoles if the ad or data setup changes | Done |
 
 ## Running the automated checks
 

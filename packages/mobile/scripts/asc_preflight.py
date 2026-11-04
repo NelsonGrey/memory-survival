@@ -270,12 +270,13 @@ def main() -> int:
         check_price()
         check_iap()
         check_game_center()
-    for item in (
-        "App Privacy labels (data collected, tracking) cannot be read through the API: confirm in the console",
-        "EU Digital Services Act trader status cannot be read through the API: confirm in the console",
-        "AdMob consent message (GDPR) must exist in AdMob > Privacy & messaging: confirm in AdMob",
-    ):
-        record("MANUAL", item)
+    # Not readable through the API. Confirmed done by the owner on 2026-11-03:
+    # App Privacy labels, EU trader status, AdMob consent message. Re-check them
+    # in the consoles if the ad or data setup changes.
+    record(
+        "MANUAL",
+        "App Privacy labels, EU trader status, AdMob consent message: owner confirmed done 2026-11-03",
+    )
 
     width = max(len(c) for _, c, _ in results)
     for status, check, detail in results:
