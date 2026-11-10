@@ -102,7 +102,7 @@ jobs:
       # an unattached build (packages/mobile/scripts/asc_preflight.py).
       - name: Set up Python for the pre-submission check
         if: ${{ inputs.release_type == 'appstore_submit' }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
