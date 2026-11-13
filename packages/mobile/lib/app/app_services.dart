@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import '../shell/shell.dart';
@@ -192,6 +193,18 @@ class AppServices {
     try {
       await consent.requestConsent();
     } catch (_) {}
+    // Subscribe before restore and before the ad SDK starts. A restored
+    // purchase is delivered on the store stream after restore() returns,
+    // often while initialize() is still running, and a consent form the
+    // player is still reading can be dismissed after requestConsent returns.
+    // Either event has to reach the ad layer; a broadcast stream does not
+    // replay it.
+    consent.changes.listen((_) {
+      unawaited(refreshAdConsent());
+    });
+    entitlement.adFreeChanges.listen((_) {
+      unawaited(refreshAdConsent());
+    });
     try {
       await entitlement.restore().timeout(const Duration(seconds: 20));
     } catch (_) {}
@@ -202,21 +215,20 @@ class AppServices {
     } catch (_) {}
 
     await refreshAdConsent();
-    entitlement.adFreeChanges.listen((adFree) {
-      ads.setAdFree(adFree || !consent.canRequestAds);
-    });
   }
 
   /// Applies the current consent and purchase state to the ad SDK. Called
-  /// at launch and after the player changes their privacy choices.
+  /// at launch and after the player changes their privacy choices or a
+  /// purchase arrives.
   Future<void> refreshAdConsent() async {
-    if (entitlement.isAdFree || !consent.canRequestAds) {
-      ads.setAdFree(true);
-      return;
+    final suppress = entitlement.isAdFree || !consent.canRequestAds;
+    if (!suppress) {
+      try {
+        await ads.initialize().timeout(const Duration(seconds: 15));
+      } catch (_) {}
     }
-    try {
-      await ads.initialize().timeout(const Duration(seconds: 15));
-    } catch (_) {}
-    if (!entitlement.isAdFree) ads.setAdFree(false);
+    // Read again after the await. A restore can land while the SDK is
+    // starting, and the flag from before the await would leave ads on.
+    ads.setAdFree(entitlement.isAdFree || !consent.canRequestAds);
   }
 }

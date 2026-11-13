@@ -22,4 +22,10 @@ abstract class ConsentService {
 
   /// Presents that entry point. No-op when [privacyOptionsRequired] is false.
   Future<void> showPrivacyOptions();
+
+  /// Fires when [canRequestAds] or [privacyOptionsRequired] changes after
+  /// [requestConsent] has already returned. That happens when the player
+  /// leaves the consent form open past the startup cap and dismisses it
+  /// later, or when they change their choice from [showPrivacyOptions].
+  Stream<void> get changes;
 }

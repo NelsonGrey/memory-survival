@@ -10,16 +10,22 @@ import 'consent_service.dart';
 ///
 /// The form is shown only when the SDK says one is required, and ads are
 /// requested only when [ConsentInformation.canRequestAds] says so. A hung
-/// network call cannot leave the game on the launch spinner.
+/// network call cannot leave the game on the launch spinner. A form the
+/// player is still reading when that cap expires still updates [changes]
+/// when they finally dismiss it.
 class UmpConsentService implements ConsentService {
   bool _canRequestAds = false;
   bool _privacyOptionsRequired = false;
+  final _changes = StreamController<void>.broadcast();
 
   @override
   bool get canRequestAds => _canRequestAds;
 
   @override
   bool get privacyOptionsRequired => _privacyOptionsRequired;
+
+  @override
+  Stream<void> get changes => _changes.stream;
 
   @override
   Future<void> requestConsent() async {
@@ -37,21 +43,33 @@ class UmpConsentService implements ConsentService {
     try {
       await updated.future.timeout(const Duration(seconds: 12));
     } on TimeoutException {
+      // The update can still succeed after startup has moved on. Show the
+      // form then; [changes] tells the app to apply the new decision.
+      unawaited(updated.future.then((_) => _showForm()));
       await _readFlags();
       return;
     }
 
+    await _showForm();
+  }
+
+  Future<void> _showForm() async {
+    final dismissed = Completer<void>();
     try {
       // Resolves when the form is dismissed, or immediately when no form
       // is required. The three-minute cap is only for a form that never
       // calls back; a player reading the form is not cut off at 12 seconds.
-      await ConsentForm.loadAndShowConsentFormIfRequired(
-        (formError) {},
-      ).timeout(const Duration(minutes: 3));
+      await ConsentForm.loadAndShowConsentFormIfRequired((formError) {
+        if (!dismissed.isCompleted) dismissed.complete();
+      }).timeout(const Duration(minutes: 3));
+      await _readFlags();
+    } on TimeoutException {
+      await _readFlags();
+      // The form is still on screen. Dismissal runs the callback above.
+      unawaited(dismissed.future.then((_) => _readFlags()));
     } catch (_) {
-      // A failed or abandoned form still leaves a decision to read below.
+      await _readFlags();
     }
-    await _readFlags();
   }
 
   @override
@@ -63,18 +81,25 @@ class UmpConsentService implements ConsentService {
   }
 
   Future<void> _readFlags() async {
+    var canRequest = _canRequestAds;
+    var privacyRequired = _privacyOptionsRequired;
     try {
-      _canRequestAds = await ConsentInformation.instance.canRequestAds();
+      canRequest = await ConsentInformation.instance.canRequestAds();
     } catch (_) {
-      _canRequestAds = false;
+      canRequest = false;
     }
     try {
       final status = await ConsentInformation.instance
           .getPrivacyOptionsRequirementStatus();
-      _privacyOptionsRequired =
-          status == PrivacyOptionsRequirementStatus.required;
+      privacyRequired = status == PrivacyOptionsRequirementStatus.required;
     } catch (_) {
-      _privacyOptionsRequired = false;
+      privacyRequired = false;
     }
+    final changed =
+        canRequest != _canRequestAds ||
+        privacyRequired != _privacyOptionsRequired;
+    _canRequestAds = canRequest;
+    _privacyOptionsRequired = privacyRequired;
+    if (changed && !_changes.isClosed) _changes.add(null);
   }
 }
