@@ -41,8 +41,8 @@ sync. This repo does not carry the legal text.
    - App Information → Support URL: see Legal/support URLs above
 3. App Store Connect → In-App Purchases → **+** → Non-Consumable (matches
    Modulo Squares' ad-removal product)
-   - Reference name: Remove Ads
-   - Display name (shown to players): Unlock Premium (matches Modulo Squares)
+   - Reference name: Unlock Premium
+   - Display name (shown to players): Remove Ads
    - Description: Remove all ads forever with one simple purchase
    - Promotional image: `marketing/assets/store/app-store/in-app-purchase/remove-ads-1024x1024.png`
      (1024×1024, opaque RGB; built by `marketing/tools/build_campaign_assets.py`)

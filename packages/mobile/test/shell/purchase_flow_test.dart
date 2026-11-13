@@ -88,7 +88,7 @@ void main() {
 
     ProductDetails product() => ProductDetails(
       id: _productId,
-      title: 'Unlock Premium',
+      title: 'Remove Ads',
       description: 'Remove all ads forever with one simple purchase',
       price: r'$2.99',
       rawPrice: 2.99,
