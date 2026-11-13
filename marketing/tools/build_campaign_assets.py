@@ -232,7 +232,7 @@ def iap_image() -> None:
             draw.rounded_rectangle((x + 2, 392, x + cell - 2, 390 + cell - 2), 12,
                                    fill=PANEL, outline="#7D8DA3", width=4)
 
-    draw.text((512, 650), "UNLOCK PREMIUM", font=font(BOLD, 78), fill=WHITE, anchor="mm")
+    draw.text((512, 650), "REMOVE ADS", font=font(BOLD, 78), fill=WHITE, anchor="mm")
     tracked(draw, (512, 760), "AD-FREE", font(BOLD, 44), MINT, 14)
     tracked(draw, (512, 840), "ONE-TIME UPGRADE", font(REGULAR, 30), STEEL, 8)
 

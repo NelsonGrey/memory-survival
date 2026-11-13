@@ -145,7 +145,7 @@ void main() {
     });
 
     test(
-      'the Unlock Premium purchase image is a 1024 square without alpha',
+      'the Remove Ads purchase image is a 1024 square without alpha',
       () {
         final p = _png(
           _repo(
