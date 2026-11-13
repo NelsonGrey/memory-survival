@@ -287,7 +287,7 @@ class _PurchaseSectionState extends State<_PurchaseSection> {
     } on PurchaseFlowException catch (e) {
       _show(e.message);
     } catch (_) {
-      _show('Remove Ads could not be started. Please try again.');
+      _show('The purchase could not be started. Please try again.');
     }
   }
 
@@ -295,8 +295,8 @@ class _PurchaseSectionState extends State<_PurchaseSection> {
     String message;
     try {
       message = await _restoreAndConfirm()
-          ? 'Remove Ads restored. You will not see ads in this game.'
-          : 'No previous Remove Ads purchase found for this Apple Account.';
+          ? 'Purchase restored. Ads are removed.'
+          : 'No previous purchase found for this Apple Account.';
     } catch (_) {
       message = 'Could not reach the App Store. Please try again.';
     }

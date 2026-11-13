@@ -11,7 +11,7 @@ const _kPrefsKey = 'game_shell_ad_free';
 /// accepted. Deliberately not the raw StoreKit / Play error: those strings
 /// are what a reviewer screenshots for a 2.1(b) rejection.
 const purchaseFailedMessage =
-    'Remove Ads could not be completed. Please try again.';
+    'The purchase could not be completed. Please try again.';
 
 const storeUnavailableMessage =
     'The App Store is unavailable right now. Please try again.';

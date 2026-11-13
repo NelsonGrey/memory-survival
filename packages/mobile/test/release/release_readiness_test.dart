@@ -144,16 +144,19 @@ void main() {
       expect((lb.w, lb.h), (1024, 1024));
     });
 
-    test('the Remove Ads purchase image is a 1024 square without alpha', () {
-      final p = _png(
-        _repo(
-          'marketing/assets/store/app-store/in-app-purchase/'
-          'remove-ads-1024x1024.png',
-        ),
-      );
-      expect((p.w, p.h), (1024, 1024));
-      expect(p.alpha, isFalse);
-    });
+    test(
+      'the Unlock Premium purchase image is a 1024 square without alpha',
+      () {
+        final p = _png(
+          _repo(
+            'marketing/assets/store/app-store/in-app-purchase/'
+            'remove-ads-1024x1024.png',
+          ),
+        );
+        expect((p.w, p.h), (1024, 1024));
+        expect(p.alpha, isFalse);
+      },
+    );
 
     test('the app icon set has the 1024 marketing icon without alpha', () {
       final dir = _mobileDir('ios/Runner/Assets.xcassets/AppIcon.appiconset');

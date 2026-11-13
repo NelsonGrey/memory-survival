@@ -89,4 +89,4 @@ Press copies: `press/BRAND_GUIDE.md`, `press/SOCIAL_COPY.md`.
 ## Store media (`assets/store/app-store/`)
 
 See that folder's `README.md`: `raw/` native captures, `iphone-6.1-6.3/` upload set.
-- `in-app-purchase/remove-ads-1024x1024.png` — promotional image for the Remove Ads purchase; opaque RGB, no price text.
+- `in-app-purchase/remove-ads-1024x1024.png` — promotional image for the Remove Ads purchase (displayed as "Unlock Premium"); opaque RGB, no price text.

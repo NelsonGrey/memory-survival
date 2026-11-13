@@ -2,7 +2,7 @@ name: ASC preflight
 
 # Read-only check of the live App Store Connect record against this
 # repository: listing text and screenshots, categories and age rating, review
-# contact, price and availability, the Remove Ads purchase, Game Center
+# contact, price and availability, the Unlock Premium purchase, Game Center
 # and the build. See packages/mobile/scripts/asc_preflight.py.
 #
 # Run it any time from the Actions tab. It also runs weekly so drift (a field
