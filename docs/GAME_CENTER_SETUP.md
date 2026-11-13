@@ -22,7 +22,7 @@ but the IDs must match exactly. The real-device check at the end is still open.
 | ID | `memory_survival_endless_score` |
 | Reference name | Endless Score |
 | Name (shown to players) | Endless Score |
-| Description | Your best endless survival score on Normal or Hard. Easy runs are not ranked. |
+| Description | Your best endless survival score on Normal. Easy and Hard runs are not ranked. |
 | Score format | Integer |
 | Score format suffix | Singular `point`, plural `points` |
 | Sort | High to low |
@@ -32,7 +32,11 @@ but the IDs must match exactly. The real-device check at the end is still open.
 One board for every ruleset version, so a balance change
 (`Ruleset.currentVersion`) does not start a new board; scores earned under
 different rules share it. The app submits the endless survival score when a
-run ends. Only Normal and Hard runs are ranked; Easy runs are not submitted.
+run ends. Only Normal runs are ranked (`Difficulty.ranked`). Easy is too
+forgiving to count, and Hard uses different pressure, so neither is submitted.
+Settings says the same thing. If the description already saved in App Store
+Connect still mentions Hard, update it there; preflight checks the ID, not
+the sentence.
 On every sign-in the app re-sends this device's best endless score for the
 current ruleset version. Game Center keeps only the best score per player, so
 resubmitting is harmless.

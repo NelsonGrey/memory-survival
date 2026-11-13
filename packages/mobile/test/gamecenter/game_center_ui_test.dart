@@ -39,6 +39,15 @@ void main() {
     final connection = _fresh();
     await pumpApp(tester, _services(connection));
     expect(find.text('Connect to Game Center?'), findsOneWidget);
+    expect(
+      find.textContaining('Post your score to the leaderboard'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('across devices'),
+      findsNothing,
+      reason: 'campaign progress is not synced',
+    );
 
     await tester.tap(find.text('Connect'));
     await tester.pumpAndSettle();

@@ -16,15 +16,21 @@ pages live on the Nelson Grey site, under `games/memory-survival/` in the
 - Terms: <https://nelsongrey.com/games/memory-survival/terms>
 - Support: <https://nelsongrey.com/games/memory-survival/support>
 
-These pages go live when the `nelson-grey` repo is deployed. Use them for App
-Store Connect's Privacy Policy URL and Support URL, and Play Console's
-Privacy Policy URL, below.
+These pages are live (checked 2026-11-13). Use them for App Store Connect's
+Privacy Policy URL and Support URL, and Play Console's Privacy Policy URL.
+
+The privacy policy currently says Game Center stores a copy of campaign
+progress in saved games. The app does not call `saveCloudProgress` /
+`loadCloudProgress`; progress is on-device only, and the in-app Game Center
+copy does not promise cross-device sync. Before submission, update that
+policy in the `nelson-grey` repo so it matches the app, or ship saved-game
+sync. This repo does not carry the legal text.
 
 ## Apple App Store Connect
 
 0. **iPhone only.** The Xcode project targets iPhone (`TARGETED_DEVICE_FAMILY = 1`),
    so App Store Connect asks for iPhone screenshots only.
-1. Developer portal → Identifiers → register bundle ID: `com.memorysurvival.app.ios` — **not done yet**
+1. Developer portal → Identifiers → bundle ID `com.memorysurvival.app.ios`. **Registered.** ASC preflight on 2026-11-09 found the app record, version 1.0 in Prepare for Submission, and build 4 valid and attached. A code change after that build needs a new upload.
 2. App Store Connect → Apps → **+** → New App
    - Platform: iOS
    - Name: Memory Survival (check availability; store name is portfolio-wide unique)
@@ -85,6 +91,12 @@ Privacy Policy URL, below.
 
 ## iOS release pipeline
 
-Not set up yet. Intercept Echo's `ios-mobile-release.yml` and
-`ios/fastlane` are the model; port them once the bundle ID is registered and
-the app record exists.
+`.github/workflows/ios-mobile-release.yml` and `packages/mobile/ios/fastlane`
+build, upload to TestFlight, push metadata, and (behind the `ios-appstore`
+environment) submit for review. `appstore_submit` runs
+`scripts/asc_preflight.py --require-attached-build` first.
+
+Signing is automatic. The Runner target sets `CODE_SIGN_STYLE = Automatic`
+with the existing development team; the Fastfile also sets it at build time
+from `FASTLANE_TEAM_ID`. What's New is `metadata/en-US/release_notes.txt`
+("First release."). The submit lane must not replace that with a placeholder.

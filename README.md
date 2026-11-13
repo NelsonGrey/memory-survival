@@ -11,11 +11,12 @@
 - [Legal/support pages](#legalsupport-pages)
 - [Getting Started](#getting-started)
 
-Flutter monorepo. No custom backend: sign-in, leaderboards, achievements,
-and cloud save go through each platform's own game-services layer (Game
-Center on iOS; Play Games Services on Android, once testing resumes) rather
-than a shared Firebase project. This is the same framework as
-[Intercept Echo](https://github.com/NelsonGrey/intercept-echo).
+Flutter monorepo. No custom backend: sign-in, leaderboards, and achievements
+go through each platform's own game-services layer (Game Center on iOS; Play
+Games Services on Android, once testing resumes) rather than a shared Firebase
+project. Campaign progress stays on the device. Game Center saved-game sync
+exists as a service layer and is not called by the game yet. This is the same
+framework as [Intercept Echo](https://github.com/NelsonGrey/intercept-echo).
 
 Memory Survival is a one-dimensional memory-allocation puzzle: processes of
 different sizes and lifetimes arrive, and the player places each one in a
@@ -79,7 +80,7 @@ Bundle/package ID base: `com.memorysurvival`
 | Deliverable | Platform | Identifier | Status |
 | --- | --- | --- | --- |
 | Android app | Google Play | `com.memorysurvival.app.android` | Kept buildable; no tester group yet, Play Console listing not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
-| iOS app | Apple App Store Connect | `com.memorysurvival.app.ios` | Bundle ID not yet registered; app record not yet created (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
+| iOS app | Apple App Store Connect | `com.memorysurvival.app.ios` | App record, listing, Game Center, and the Remove Ads purchase exist. ASC preflight passed on 2026-11-09 against build 4 (version 1.0, Prepare for Submission). Upload a new build after code changes (see [docs/STORE_SETUP.md](docs/STORE_SETUP.md)) |
 
 ## Store setup still required manually
 

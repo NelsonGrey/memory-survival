@@ -120,6 +120,17 @@ class _BannerAdView extends StatefulWidget {
 class _BannerAdViewState extends State<_BannerAdView> {
   BannerAd? _ad;
   bool _loaded = false;
+  bool _released = false;
+
+  /// A failed load and [dispose] can both run. [BannerAd.dispose] is not
+  /// safe to call twice, and a no-fill during review must not take the
+  /// screen down with it.
+  void _release(Ad ad) {
+    if (_released) return;
+    _released = true;
+    _ad = null;
+    ad.dispose();
+  }
 
   @override
   void initState() {
@@ -130,9 +141,9 @@ class _BannerAdViewState extends State<_BannerAdView> {
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
-          if (mounted) setState(() => _loaded = true);
+          if (mounted && !_released) setState(() => _loaded = true);
         },
-        onAdFailedToLoad: (ad, error) => ad.dispose(),
+        onAdFailedToLoad: (ad, error) => _release(ad),
       ),
     );
     _ad = ad;
@@ -141,7 +152,8 @@ class _BannerAdViewState extends State<_BannerAdView> {
 
   @override
   void dispose() {
-    _ad?.dispose();
+    final ad = _ad;
+    if (ad != null) _release(ad);
     super.dispose();
   }
 

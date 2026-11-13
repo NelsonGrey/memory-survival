@@ -2,7 +2,19 @@ import 'consent_service.dart';
 
 /// Deterministic fake for tests: resolves immediately, always permits ads.
 class FakeConsentService implements ConsentService {
+  FakeConsentService({
+    this.canRequestAds = true,
+    this.privacyOptionsRequired = false,
+  });
+
   bool requestConsentCalled = false;
+  int privacyOptionsShown = 0;
+
+  @override
+  final bool canRequestAds;
+
+  @override
+  final bool privacyOptionsRequired;
 
   @override
   Future<void> requestConsent() async {
@@ -10,5 +22,7 @@ class FakeConsentService implements ConsentService {
   }
 
   @override
-  bool get canRequestAds => true;
+  Future<void> showPrivacyOptions() async {
+    privacyOptionsShown++;
+  }
 }
