@@ -208,9 +208,8 @@ def tracked(draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str,
 
 
 def iap_image() -> None:
-    """1024 x 1024 promotional image for the Remove Ads in-app purchase
-    (shown in App Store Connect as "Unlock Premium"): a struck-through ad
-    banner above a clean run of memory."""
+    """1024 x 1024 promotional image for the Remove Ads in-app purchase:
+    a struck-through ad banner above a clean run of memory."""
     size = 1024
     image = background((size, size))
     draw = ImageDraw.Draw(image)

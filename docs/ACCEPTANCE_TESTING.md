@@ -24,7 +24,7 @@ evidence that has to be collected and filed before release.
 | MAS-BR-013 not reliant on color, audio, fine motor precision or rapid reading | Tap targets (Android and iOS guidelines), every control labelled, text contrast, no overflow at 1.5x, 2x and 3x text, memory cells and lifetimes described in words | `test/acceptance/accessibility_test.dart`, `test/theme/` |
 | MAS-BR-014 store claims | Metadata within App Store limits; the scenario count in the listing is the real count; promised features exist in code; no price or superlative claims | `test/release/release_readiness_test.dart` |
 | Release gates | No Google test ad IDs on iOS; Info.plist AdMob app ID equals the code; iPhone-only; opaque screenshots and icons of the right size; docs list every Game Center ID and the purchase product ID | `test/release/release_readiness_test.dart` |
-| Live App Store Connect state | Listing, screenshots, categories, age rating, review contact, Free price, availability, the $2.99 Unlock Premium purchase, Game Center IDs, localizations and images, and the build all match the repo | `scripts/asc_preflight.py` (CI job "ASC preflight", weekly and on demand; also gates submit for review) |
+| Live App Store Connect state | Listing, screenshots, categories, age rating, review contact, Free price, availability, the $2.99 Remove Ads purchase, Game Center IDs, localizations and images, and the build all match the repo | `scripts/asc_preflight.py` (CI job "ASC preflight", weekly and on demand; also gates submit for review) |
 | End-to-end launch | The real app on an iOS simulator: decline Game Center, open Settings and Scenarios, finish an endless run | `integration_test/app_smoke_test.dart` (CI job `integration`) |
 
 ## Human evidence still required
