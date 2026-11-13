@@ -4,7 +4,7 @@
 Read-only. Answers "is App Store Connect ready for this build to be
 submitted?" without anyone clicking through the console: listing text and
 screenshots, categories and age rating, review contact, price and
-availability, the Unlock Premium purchase, Game Center, and the build.
+availability, the Remove Ads purchase, Game Center, and the build.
 
 Needs the same secrets the release workflow uses:
   APP_STORE_CONNECT_KEY (PEM or base64), APP_STORE_CONNECT_KEY_ID,
@@ -37,7 +37,7 @@ ROOT = MOBILE.parents[1]
 META = MOBILE / "ios/fastlane/metadata"
 BUNDLE_ID = "com.memorysurvival.app.ios"
 EXPECTED_IAP_PRICE = "2.99"
-EXPECTED_IAP_NAME = "Unlock Premium"
+EXPECTED_IAP_NAME = "Remove Ads"
 
 results: list[tuple[str, str, str]] = []  # (status, check, detail)
 

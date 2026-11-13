@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import '../shell/shell.dart';
@@ -184,18 +185,50 @@ class AppServices {
     await scenarioProgress.load();
     await suggestions.load();
     await howToPlay.load();
-    await consent.requestConsent();
-    await entitlement.restore();
 
-    // Only reconnects a player who already opted in; a failed sign-in (e.g.
-    // no Game Center account on this device) lands in
-    // GameCenterStatus.unavailable and never blocks the app from starting.
-    await connection.load();
+    // Consent, the store, and the ad SDK are all network calls. Any one of
+    // them hanging or throwing used to leave the launch spinner up forever,
+    // which is a 2.1 rejection before the reviewer can play. Each is isolated
+    // so the game still opens.
+    try {
+      await consent.requestConsent();
+    } catch (_) {}
+    // Subscribe before restore and before the ad SDK starts. A restored
+    // purchase is delivered on the store stream after restore() returns,
+    // often while initialize() is still running, and a consent form the
+    // player is still reading can be dismissed after requestConsent returns.
+    // Either event has to reach the ad layer; a broadcast stream does not
+    // replay it.
+    consent.changes.listen((_) {
+      unawaited(refreshAdConsent());
+    });
+    entitlement.adFreeChanges.listen((_) {
+      unawaited(refreshAdConsent());
+    });
+    try {
+      await entitlement.restore().timeout(const Duration(seconds: 20));
+    } catch (_) {}
+    try {
+      // Reconnects a player who already opted in. A failed sign-in lands in
+      // GameCenterStatus.unavailable and has its own timeout.
+      await connection.load();
+    } catch (_) {}
 
-    if (consent.canRequestAds) {
-      await ads.initialize();
+    await refreshAdConsent();
+  }
+
+  /// Applies the current consent and purchase state to the ad SDK. Called
+  /// at launch and after the player changes their privacy choices or a
+  /// purchase arrives.
+  Future<void> refreshAdConsent() async {
+    final suppress = entitlement.isAdFree || !consent.canRequestAds;
+    if (!suppress) {
+      try {
+        await ads.initialize().timeout(const Duration(seconds: 15));
+      } catch (_) {}
     }
-    ads.setAdFree(entitlement.isAdFree);
-    entitlement.adFreeChanges.listen(ads.setAdFree);
+    // Read again after the await. A restore can land while the SDK is
+    // starting, and the flag from before the await would leave ads on.
+    ads.setAdFree(entitlement.isAdFree || !consent.canRequestAds);
   }
 }

@@ -106,9 +106,8 @@ Future<void> showGameCenterPrompt(
       scrollable: true,
       title: const Text('Connect to Game Center?'),
       content: const Text(
-        'Post your score to the leaderboard, earn achievements, and keep '
-        'your campaign progress across devices. Playing never requires it, '
-        'and you can change your mind in Settings.',
+        'Post your score to the leaderboard and earn achievements. Playing '
+        'never requires it, and you can change your mind in Settings.',
       ),
       actions: [
         TextButton(

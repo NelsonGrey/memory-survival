@@ -9,5 +9,23 @@ abstract class ConsentService {
   Future<void> requestConsent();
 
   /// Whether it's safe to initialize the ad SDK and request ads.
+  ///
+  /// This is the UMP SDK's own answer after [requestConsent], not a value
+  /// the app forces to true. It stays false when consent is required and
+  /// has not been gathered.
   bool get canRequestAds;
+
+  /// True when the privacy message requires an in-app entry point so the
+  /// player can change their choice. False everywhere else, including the
+  /// US when no such message is configured.
+  bool get privacyOptionsRequired;
+
+  /// Presents that entry point. No-op when [privacyOptionsRequired] is false.
+  Future<void> showPrivacyOptions();
+
+  /// Fires when [canRequestAds] or [privacyOptionsRequired] changes after
+  /// [requestConsent] has already returned. That happens when the player
+  /// leaves the consent form open past the startup cap and dismisses it
+  /// later, or when they change their choice from [showPrivacyOptions].
+  Stream<void> get changes;
 }

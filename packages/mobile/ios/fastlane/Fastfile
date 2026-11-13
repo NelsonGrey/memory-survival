@@ -4,11 +4,9 @@
 # Signing is automatic, authenticated by an App Store Connect API key
 # (-allowProvisioningUpdates at the xcodebuild level) rather than a
 # git-based certificate store (fastlane match).
-# Memory Survival has no Firebase backend (Game Center handles sign-in) and
-# no live AdMob unit IDs yet (docs/STORE_SETUP.md: it ships on
-# AdMobConfig.test() until a real AdMob app is provisioned), so there is no
-# native-config swap or ad-unit dart-define step to run before a release
-# build. Once real AdMob IDs exist, they must be swapped in before any
+# Memory Survival has no Firebase backend (Game Center handles sign-in).
+# Production AdMob IDs already live in lib/app/app_services.dart and
+# GADApplicationIdentifier. Do not swap them for Google's test IDs in a
 # build that goes to App Review.
 
 require 'shellwords'
@@ -280,7 +278,7 @@ platform :ios do
   end
 
   desc "Submit the current App Store Connect build for App Store review — irreversible, human-triggered only. Never called by CI automatically."
-  lane :submit_appstore_for_review do |options|
+  lane :submit_appstore_for_review do
     deliver(
       api_key: app_store_api_key,
       app_identifier: "com.memorysurvival.app.ios",
@@ -303,6 +301,8 @@ platform :ios do
           "in-app purchase, Remove Ads, hides the banner ads."
       },
       precheck_include_in_app_purchases: false,
+      # What's New comes from metadata/en-US/release_notes.txt ("First
+      # release."). Do not override it with a placeholder.
       submission_information: {
         # true: AppServices.initialize (app_services.dart) runs
         # UmpConsentService.requestConsent before ads load, which shows the
@@ -314,9 +314,6 @@ platform :ios do
         idfa_uses_third_party_advertising: true,
         export_compliance_encryption_updated: false,
         export_compliance_uses_encryption: false
-      },
-      release_notes: {
-        "en-US" => options[:release_notes] || "Bug fixes and performance improvements"
       }
     )
     UI.success("✅ Submitted to App Store review")

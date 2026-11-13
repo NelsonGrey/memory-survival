@@ -145,7 +145,7 @@ void main() {
     });
 
     test(
-      'the Unlock Premium purchase image is a 1024 square without alpha',
+      'the Remove Ads purchase image is a 1024 square without alpha',
       () {
         final p = _png(
           _repo(
@@ -246,6 +246,26 @@ void main() {
         );
       },
     );
+
+    test('the Runner target signs automatically and pods match iOS 15', () {
+      final pbx = _source('ios/Runner.xcodeproj/project.pbxproj');
+      expect(
+        RegExp(
+          r'CODE_SIGN_ENTITLEMENTS = Runner/Runner\.entitlements;\s*CODE_SIGN_STYLE = Automatic;',
+        ).allMatches(pbx),
+        hasLength(3),
+      );
+      expect(_source('ios/Podfile'), contains("platform :ios, '15.0'"));
+    });
+
+    test('submit for review keeps the metadata release notes', () {
+      final fastfile = _source('ios/fastlane/Fastfile');
+      expect(
+        fastfile,
+        isNot(contains('Bug fixes and performance improvements')),
+      );
+      expect(fastfile, contains('release_notes.txt'));
+    });
 
     test('the version is major.minor.patch+build', () {
       expect(

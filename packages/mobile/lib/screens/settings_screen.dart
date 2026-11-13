@@ -81,7 +81,7 @@ class SettingsScreen extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             const _SectionHeader('Purchases'),
-            _PurchaseSection(entitlement: services.entitlement),
+            _PurchaseSection(services: services),
             const SizedBox(height: 16),
             const _SectionHeader('Accessibility'),
             SwitchListTile(
@@ -92,6 +92,19 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const _SectionHeader('Legal'),
+            if (services.consent.privacyOptionsRequired)
+              ListTile(
+                title: const Text('Ad privacy choices'),
+                subtitle: const Text(
+                  'Review or change your advertising consent',
+                ),
+                trailing: const Icon(Icons.privacy_tip_outlined, size: 18),
+                onTap: () async {
+                  await services.consent.showPrivacyOptions();
+                  if (!context.mounted) return;
+                  await services.refreshAdConsent();
+                },
+              ),
             _LegalLink(
               label: 'Privacy Policy',
               url: legalUrls.privacy,
@@ -173,23 +186,59 @@ class _LegalLink extends StatelessWidget {
   }
 }
 
-/// Ad-free status, the one-time "Remove Ads" purchase (MAS-BR-007: a
-/// single $2.99 IAP, matching Modulo Squares), and Restore Purchases.
+/// Ad-free status, the one-time "Remove Ads" purchase (MAS-BR-007), and
+/// Restore Purchases. The price on the button is the store's localized
+/// price. A hardcoded "$2.99" is only the fallback the test double returns.
+///
 /// [EntitlementService] isn't a [Listenable] — it reports changes on
 /// [EntitlementService.adFreeChanges] instead — so this rebuilds off a
 /// [StreamBuilder], seeded with the already-loaded [isAdFree] value.
-class _PurchaseSection extends StatelessWidget {
-  const _PurchaseSection({required this.entitlement});
+class _PurchaseSection extends StatefulWidget {
+  const _PurchaseSection({required this.services});
 
-  final EntitlementService entitlement;
+  final AppServices services;
+
+  @override
+  State<_PurchaseSection> createState() => _PurchaseSectionState();
+}
+
+class _PurchaseSectionState extends State<_PurchaseSection> {
+  String? _price;
+  StreamSubscription<String>? _errors;
+
+  EntitlementService get entitlement => widget.services.entitlement;
+
+  @override
+  void initState() {
+    super.initState();
+    _errors = entitlement.purchaseErrors.listen(_show);
+    entitlement.loadAdRemovalPrice().then((price) {
+      if (mounted) setState(() => _price = price);
+    });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_errors?.cancel());
+    super.dispose();
+  }
+
+  void _show(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
+    final canRequestAds = widget.services.consent.canRequestAds;
     return StreamBuilder<bool>(
       stream: entitlement.adFreeChanges,
       initialData: entitlement.isAdFree,
       builder: (context, snapshot) {
         final adFree = snapshot.data ?? false;
+        final price = _price;
         return Column(
           children: [
             ListTile(
@@ -200,8 +249,10 @@ class _PurchaseSection extends StatelessWidget {
               subtitle: Text(
                 adFree
                     ? 'You will never see an ad in this game.'
-                    : 'A banner and the occasional interstitial support '
-                          'free play.',
+                    : canRequestAds
+                    ? 'A banner and the occasional interstitial support '
+                          'free play.'
+                    : 'Ads stay off until advertising consent is available.',
               ),
             ),
             if (!adFree)
@@ -209,7 +260,9 @@ class _PurchaseSection extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                 child: FilledButton(
                   onPressed: () => _purchase(context),
-                  child: const Text('Remove Ads — \$2.99'),
+                  child: Text(
+                    price == null ? 'Remove Ads' : 'Remove Ads — $price',
+                  ),
                 ),
               ),
             Padding(
@@ -229,12 +282,12 @@ class _PurchaseSection extends StatelessWidget {
     try {
       await entitlement.purchaseAdRemoval();
       // The store's own payment sheet handles the flow from here; a
-      // completed purchase arrives through adFreeChanges above.
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-      );
+      // completed purchase arrives through adFreeChanges above. A failure
+      // after the sheet opens arrives on purchaseErrors.
+    } on PurchaseFlowException catch (e) {
+      _show(e.message);
+    } catch (_) {
+      _show('The purchase could not be started. Please try again.');
     }
   }
 
@@ -285,8 +338,7 @@ class _GameCenterSection extends StatelessWidget {
     final connection = services.connection;
     final connecting = connection.status == GameCenterStatus.connecting;
     final subtitle = switch (connection.status) {
-      GameCenterStatus.off =>
-        'Post scores, earn achievements and sync progress across devices',
+      GameCenterStatus.off => 'Post scores and earn achievements',
       GameCenterStatus.connecting => 'Connecting…',
       GameCenterStatus.connected =>
         'Connected as ${connection.playerName ?? 'your Game Center player'}',
